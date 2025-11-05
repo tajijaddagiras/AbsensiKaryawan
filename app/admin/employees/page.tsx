@@ -55,6 +55,10 @@ export default function EmployeesPage() {
     show: boolean;
     employee: Employee | null;
   }>({ show: false, employee: null });
+  const [confirmToggle, setConfirmToggle] = useState<{
+    show: boolean;
+    employee: Employee | null;
+  }>({ show: false, employee: null });
 
   useEffect(() => {
     checkAuth();
@@ -232,18 +236,25 @@ export default function EmployeesPage() {
     }
   };
 
-  const handleToggleStatus = async (id: string, currentStatus: boolean) => {
-      const employee = employees.find(emp => emp.id === id);
-      if (!employee) return;
+  const handleToggleStatus = (id: string) => {
+    const employee = employees.find(emp => emp.id === id);
+    if (!employee) {
+      setNotification({ show: true, type: 'error', message: 'Karyawan tidak ditemukan' });
+      return;
+    }
+    setConfirmToggle({ show: true, employee });
+  };
 
+  const handleToggleConfirm = async () => {
+    const employee = confirmToggle.employee;
+    if (!employee) return;
+
+    const currentStatus = employee.is_active;
     const action = currentStatus ? 'deactivate' : 'activate';
     const actionText = currentStatus ? 'menonaktifkan' : 'mengaktifkan';
-    const statusText = currentStatus ? 'NON-AKTIF' : 'AKTIF';
-
-    if (!confirm(`${currentStatus ? '⚠️' : '✅'} ${actionText.toUpperCase()} KARYAWAN\n\nApakah Anda yakin ingin ${actionText} karyawan ini?\n\nNama: ${employee.full_name}\nEmail: ${employee.email}\nStatus Saat Ini: ${currentStatus ? 'AKTIF' : 'NON-AKTIF'}\nStatus Baru: ${statusText}\n\nLanjutkan?`)) return;
 
     try {
-      const response = await fetch(`/api/employees/${id}`, {
+      const response = await fetch(`/api/employees/${employee.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action }),
@@ -259,6 +270,8 @@ export default function EmployeesPage() {
     } catch (error: any) {
       console.error(`Error toggling employee status:`, error);
       setNotification({ show: true, type: 'error', message: error.message || `Gagal ${actionText} karyawan` });
+    } finally {
+      setConfirmToggle({ show: false, employee: null });
     }
   };
 
@@ -592,7 +605,7 @@ export default function EmployeesPage() {
                         </button>
 
                         <button
-                      onClick={() => handleToggleStatus(employee.id, employee.is_active)}
+                      onClick={() => handleToggleStatus(employee.id)}
                       className={`px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center justify-center gap-1 border ${
                             employee.is_active
                           ? 'bg-yellow-50 hover:bg-yellow-100 border-yellow-200 text-yellow-600 hover:text-yellow-700'
@@ -913,7 +926,7 @@ export default function EmployeesPage() {
         </div>
       )}
 
-      {/* Confirmation Modal */}
+      {/* Confirmation Modal - Delete */}
       {confirmDelete.show && confirmDelete.employee && (
         <ConfirmationModal
           isOpen={confirmDelete.show}
@@ -924,6 +937,19 @@ export default function EmployeesPage() {
           requireConfirmText="HAPUS"
           onConfirm={handleDeleteConfirm}
           onCancel={() => setConfirmDelete({ show: false, employee: null })}
+        />
+      )}
+
+      {/* Confirmation Modal - Toggle Status */}
+      {confirmToggle.show && confirmToggle.employee && (
+        <ConfirmationModal
+          isOpen={confirmToggle.show}
+          title={confirmToggle.employee.is_active ? '⚠️ NONAKTIFKAN KARYAWAN' : '✅ AKTIFKAN KARYAWAN'}
+          message={`Apakah Anda yakin ingin ${confirmToggle.employee.is_active ? 'menonaktifkan' : 'mengaktifkan'} karyawan ini?\n\nNama: ${confirmToggle.employee.full_name}\nEmail: ${confirmToggle.employee.email}\nStatus Saat Ini: ${confirmToggle.employee.is_active ? 'AKTIF' : 'NON-AKTIF'}\nStatus Baru: ${confirmToggle.employee.is_active ? 'NON-AKTIF' : 'AKTIF'}`}
+          confirmText={confirmToggle.employee.is_active ? 'Ya, Nonaktifkan' : 'Ya, Aktifkan'}
+          cancelText="Batal"
+          onConfirm={handleToggleConfirm}
+          onCancel={() => setConfirmToggle({ show: false, employee: null })}
         />
       )}
 
