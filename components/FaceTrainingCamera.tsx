@@ -508,7 +508,7 @@ export default function FaceTrainingCamera({ onComplete, onClose }: FaceTraining
             className="w-full"
             style={{ 
               maxHeight: '400px',
-              transform: 'scaleX(1)' // ⚡ NO MIRROR - kamera normal seperti foto biasa!
+              transform: 'scaleX(-1)' // ⚡ FLIP untuk mengembalikan ke tampilan normal (non-mirror) seperti foto biasa!
             }}
             onLoadedMetadata={() => {
               console.log('📺 Video metadata loaded in JSX');

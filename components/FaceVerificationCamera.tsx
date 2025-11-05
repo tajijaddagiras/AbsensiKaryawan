@@ -442,7 +442,7 @@ export default function FaceVerificationCamera({
             className="w-full"
             style={{ 
               maxHeight: '300px',
-              transform: 'scaleX(1)' // ⚡ NO MIRROR - kamera normal seperti foto biasa!
+              transform: 'scaleX(-1)' // ⚡ FLIP untuk mengembalikan ke tampilan normal (non-mirror) seperti foto biasa!
             }}
             onLoadedMetadata={() => {
               console.log('📺 [VERIFICATION] Video metadata loaded in JSX');
