@@ -40,7 +40,8 @@ export default function AttendancePage() {
   const [showCamera, setShowCamera] = useState(false);
   const [todayAttendance, setTodayAttendance] = useState<any>(null);
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [isProcessingCheckIn, setIsProcessingCheckIn] = useState(false);
+  const [isProcessingCheckOut, setIsProcessingCheckOut] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [todaySchedule, setTodaySchedule] = useState<any>(null);
   const [isHoliday, setIsHoliday] = useState<any>(null);
@@ -318,7 +319,12 @@ export default function AttendancePage() {
   const handleContinueAfterVerification = async () => {
     if (!verificationResult?.success) return;
     
-    setLoading(true);
+    // Set loading state berdasarkan isCheckOut
+    if (isCheckOut) {
+      setIsProcessingCheckOut(true);
+    } else {
+      setIsProcessingCheckIn(true);
+    }
 
     try {
       // Prepare time data for modal
@@ -341,7 +347,11 @@ export default function AttendancePage() {
           time: { timeStr, dateStr }
         });
         setShowErrorModal(true);
-        setLoading(false);
+        if (isCheckOut) {
+          setIsProcessingCheckOut(false);
+        } else {
+          setIsProcessingCheckIn(false);
+        }
         return;
       }
 
@@ -353,7 +363,11 @@ export default function AttendancePage() {
           time: { timeStr, dateStr }
         });
         setShowErrorModal(true);
-        setLoading(false);
+        if (isCheckOut) {
+          setIsProcessingCheckOut(false);
+        } else {
+          setIsProcessingCheckIn(false);
+        }
         return;
       }
 
@@ -384,7 +398,11 @@ export default function AttendancePage() {
           });
         }
         setShowErrorModal(true);
-        setLoading(false);
+        if (isCheckOut) {
+          setIsProcessingCheckOut(false);
+        } else {
+          setIsProcessingCheckIn(false);
+        }
         return;
       }
 
@@ -424,6 +442,7 @@ export default function AttendancePage() {
           setShowSuccessModal(true);
           fetchTodayAttendance();
           setIsCheckOut(false);
+          setIsProcessingCheckOut(false);
         } else {
           setErrorData({
             isCheckOut: true,
@@ -432,6 +451,7 @@ export default function AttendancePage() {
             time: { timeStr, dateStr }
           });
           setShowErrorModal(true);
+          setIsProcessingCheckOut(false);
         }
       } else {
       const response = await fetch('/api/attendance/check-in', {
@@ -464,6 +484,7 @@ export default function AttendancePage() {
           });
           setShowSuccessModal(true);
         fetchTodayAttendance();
+        setIsProcessingCheckIn(false);
       } else {
           setErrorData({
             isCheckOut: false,
@@ -472,6 +493,7 @@ export default function AttendancePage() {
             time: { timeStr, dateStr }
           });
           setShowErrorModal(true);
+          setIsProcessingCheckIn(false);
         }
       }
     } catch (error: any) {
@@ -493,8 +515,12 @@ export default function AttendancePage() {
         time: { timeStr, dateStr }
       });
       setShowErrorModal(true);
-    } finally {
-      setLoading(false);
+      // Reset loading state berdasarkan isCheckOut
+      if (isCheckOut) {
+        setIsProcessingCheckOut(false);
+      } else {
+        setIsProcessingCheckIn(false);
+      }
     }
   };
 
@@ -873,13 +899,13 @@ export default function AttendancePage() {
                     setIsCheckOut(false);
                 setShowCamera(true);
               }}
-              disabled={todayAttendance || loading}
+              disabled={todayAttendance || isProcessingCheckIn || isProcessingCheckOut}
                   className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold py-2 px-3 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md text-xs sm:text-sm flex items-center justify-center gap-1.5"
             >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
-                  {loading ? 'Processing...' : 'Check In'}
+                  {isProcessingCheckIn ? 'Processing...' : 'Check In'}
             </button>
                 {todayAttendance && (
                   <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-md">
@@ -915,13 +941,13 @@ export default function AttendancePage() {
                     setIsCheckOut(true);
                     setShowCamera(true);
                   }}
-                  disabled={!todayAttendance || todayAttendance.check_out_time || loading}
+                  disabled={!todayAttendance || todayAttendance.check_out_time || isProcessingCheckIn || isProcessingCheckOut}
                   className="w-full bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white font-semibold py-2 px-3 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md text-xs sm:text-sm flex items-center justify-center gap-1.5"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
-              {loading ? 'Processing...' : 'Check Out'}
+              {isProcessingCheckOut ? 'Processing...' : 'Check Out'}
             </button>
                 {todayAttendance?.check_out_time && (
                   <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-md">
@@ -1122,7 +1148,8 @@ export default function AttendancePage() {
           onClose={() => {
             setShowResultModal(false);
             setVerificationResult(null);
-            setLoading(false);
+            setIsProcessingCheckIn(false);
+            setIsProcessingCheckOut(false);
             setIsCheckOut(false);
           }}
           onContinue={() => {

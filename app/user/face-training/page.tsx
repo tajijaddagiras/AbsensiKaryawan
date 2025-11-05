@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import UserSidebar, { SidebarToggleButton } from '@/components/UserSidebar';
+import SuccessNotification from '@/components/SuccessNotification';
+import ErrorNotification from '@/components/ErrorNotification';
 import dynamic from 'next/dynamic';
 
 const FaceTrainingCamera = dynamic(() => import('@/components/FaceTrainingCamera'), {
@@ -17,6 +19,11 @@ export default function FaceTrainingPage() {
   const [employee, setEmployee] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showTrainingModal, setShowTrainingModal] = useState(false);
+  const [notification, setNotification] = useState<{
+    show: boolean;
+    type: 'success' | 'error';
+    message: string;
+  }>({ show: false, type: 'success', message: '' });
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -93,15 +100,27 @@ export default function FaceTrainingPage() {
         
         // Show success message after data refresh
         setTimeout(() => {
-          alert(`✅ Training wajah berhasil!\n\nScore: ${matchScore.toFixed(2)}%\n\nData wajah Anda sudah tersimpan di sistem.`);
+          setNotification({
+            show: true,
+            type: 'success',
+            message: `✅ Training wajah berhasil!\n\nScore: ${matchScore.toFixed(2)}%\n\nData wajah Anda sudah tersimpan di sistem.`
+          });
         }, 200);
       } else {
         console.error('❌ Failed to save training:', data.error);
-        alert(data.error || 'Gagal menyimpan training wajah');
+        setNotification({
+          show: true,
+          type: 'error',
+          message: data.error || 'Gagal menyimpan training wajah'
+        });
       }
     } catch (error) {
       console.error('❌ Error saving face training:', error);
-      alert('Gagal menyimpan training wajah');
+      setNotification({
+        show: true,
+        type: 'error',
+        message: 'Gagal menyimpan training wajah'
+      });
     }
   };
 
@@ -495,6 +514,22 @@ export default function FaceTrainingPage() {
         <FaceTrainingCamera
           onComplete={handleTrainingComplete}
           onClose={() => setShowTrainingModal(false)}
+        />
+      )}
+
+      {/* Notifications */}
+      {notification.type === 'success' && (
+        <SuccessNotification
+          isOpen={notification.show}
+          message={notification.message}
+          onClose={() => setNotification({ show: false, type: 'success', message: '' })}
+        />
+      )}
+      {notification.type === 'error' && (
+        <ErrorNotification
+          isOpen={notification.show}
+          message={notification.message}
+          onClose={() => setNotification({ show: false, type: 'error', message: '' })}
         />
       )}
     </div>
