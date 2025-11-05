@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import UserSidebar, { SidebarToggleButton } from '@/components/UserSidebar';
+import SkeletonCard from '@/components/SkeletonCard';
 
 export default function UserDashboard() {
   const router = useRouter();
@@ -30,9 +32,20 @@ export default function UserDashboard() {
     }
 
     setUser(parsedUser);
-    fetchEmployeeData(parsedUser.email);
-    fetchTodayScheduleAndHoliday();
-    fetchActiveOffice();
+    
+    (async () => {
+      try {
+        await Promise.all([
+          fetchEmployeeData(parsedUser.email),
+          fetchTodayScheduleAndHoliday(),
+          fetchActiveOffice(),
+        ]);
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [router]);
 
   const fetchEmployeeData = async (email: string) => {
@@ -43,12 +56,11 @@ export default function UserDashboard() {
       if (data.success && data.data.length > 0) {
         const emp = data.data[0];
         setEmployee(emp);
-        fetchTodayAttendance(emp.id);
+        // Fetch attendance setelah employee didapat
+        await fetchTodayAttendance(emp.id);
       }
     } catch (error) {
       console.error('Error fetching employee data:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -149,6 +161,70 @@ export default function UserDashboard() {
     day: 'numeric'
   });
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        <UserSidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
+
+        <div className="lg:ml-64 min-h-screen">
+          {/* Header */}
+          <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-slate-200 shadow-sm">
+            <div className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                  <SidebarToggleButton onClick={() => setIsSidebarOpen(true)} />
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0"></div>
+                  <div className="flex flex-col min-w-0">
+                    <div className="h-6 bg-slate-200 rounded w-32 animate-pulse"></div>
+                    <div className="h-4 bg-slate-200 rounded w-24 mt-1 animate-pulse"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          {/* Main Content */}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            {/* Banner Skeleton */}
+            <div className="space-y-3 sm:space-y-4 mb-6">
+              <div className="h-20 bg-slate-200 rounded-lg animate-pulse"></div>
+              <div className="h-20 bg-slate-200 rounded-lg animate-pulse"></div>
+            </div>
+
+            {/* Welcome Card Skeleton */}
+            <div className="bg-gradient-to-br from-slate-200 to-slate-300 rounded-xl sm:rounded-2xl p-6 sm:p-8 mb-6 animate-pulse">
+              <div className="flex items-center gap-4 sm:gap-6">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-slate-300"></div>
+                <div className="flex-1 space-y-2">
+                  <div className="h-6 bg-slate-300 rounded w-3/4"></div>
+                  <div className="h-4 bg-slate-300 rounded w-1/2"></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Stats Cards Skeleton */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="bg-white rounded-xl p-4 shadow-sm border border-slate-200 animate-pulse">
+                  <div className="h-4 bg-slate-200 rounded w-16 mb-2"></div>
+                  <div className="h-8 bg-slate-300 rounded w-12"></div>
+                </div>
+              ))}
+            </div>
+
+            {/* Recent Activity Skeleton */}
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+              <div className="h-6 bg-slate-200 rounded w-40 mb-4 animate-pulse"></div>
+              <div className="space-y-3">
+                <SkeletonCard variant="default" count={3} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <UserSidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
@@ -244,11 +320,16 @@ export default function UserDashboard() {
             <div className="bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 rounded-xl sm:rounded-2xl p-6 sm:p-8 mb-6 shadow-lg">
               <div className="flex items-center gap-4 sm:gap-6">
                 {employee.avatar_url ? (
-                  <img 
-                    src={employee.avatar_url} 
-                    alt={employee.full_name}
-                    className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover shadow-xl border-4 border-white/30"
-                  />
+                  <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full shadow-xl border-4 border-white/30 overflow-hidden">
+                    <Image 
+                      src={employee.avatar_url} 
+                      alt={employee.full_name}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 640px) 80px, 96px"
+                      unoptimized
+                    />
+                  </div>
                 ) : (
                   <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white/20 backdrop-blur-sm border-4 border-white/30 flex items-center justify-center text-white font-bold text-3xl shadow-xl">
                     {getInitials(employee.full_name)}

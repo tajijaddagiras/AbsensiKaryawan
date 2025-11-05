@@ -2,8 +2,34 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import dynamic from 'next/dynamic';
 import AdminSidebar, { SidebarToggleButton } from '@/components/AdminSidebar';
-import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import SkeletonCard from '@/components/SkeletonCard';
+
+// Lazy load Charts untuk mengurangi initial bundle size
+// @ts-ignore - Type issues with recharts dynamic imports
+const PieChart = dynamic(() => import('recharts').then(mod => mod.PieChart), { ssr: false });
+// @ts-ignore
+const Pie = dynamic(() => import('recharts').then(mod => mod.Pie), { ssr: false });
+// @ts-ignore
+const Cell = dynamic(() => import('recharts').then(mod => mod.Cell), { ssr: false });
+// @ts-ignore
+const ResponsiveContainer = dynamic(() => import('recharts').then(mod => mod.ResponsiveContainer), { ssr: false });
+// @ts-ignore
+const BarChart = dynamic(() => import('recharts').then(mod => mod.BarChart), { ssr: false });
+// @ts-ignore
+const Bar = dynamic(() => import('recharts').then(mod => mod.Bar), { ssr: false });
+// @ts-ignore
+const XAxis = dynamic(() => import('recharts').then(mod => mod.XAxis), { ssr: false });
+// @ts-ignore
+const YAxis = dynamic(() => import('recharts').then(mod => mod.YAxis), { ssr: false });
+// @ts-ignore
+const CartesianGrid = dynamic(() => import('recharts').then(mod => mod.CartesianGrid), { ssr: false });
+// @ts-ignore
+const Tooltip = dynamic(() => import('recharts').then(mod => mod.Tooltip), { ssr: false });
+// @ts-ignore
+const Legend = dynamic(() => import('recharts').then(mod => mod.Legend), { ssr: false });
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -602,10 +628,108 @@ export default function AdminDashboard() {
 
   if (loadingDashboard) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600 font-medium">Memuat data dashboard...</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        <AdminSidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
+
+        <div className="lg:ml-64 min-h-screen">
+          {/* Header */}
+          <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-slate-200 shadow-sm">
+            <div className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                  <SidebarToggleButton onClick={() => setIsSidebarOpen(true)} />
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0"></div>
+                  <div className="flex flex-col min-w-0">
+                    <div className="h-6 bg-slate-200 rounded w-32 animate-pulse"></div>
+                    <div className="h-4 bg-slate-200 rounded w-40 mt-1 animate-pulse"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          {/* Main Content */}
+          <main className="p-3 sm:p-4 md:p-6 lg:p-8">
+            <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+              {/* Quick Stats Skeleton */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3 sm:gap-4">
+                {[1, 2].map((i) => (
+                  <div key={i} className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm border border-slate-200 animate-pulse">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-10 h-10 bg-slate-200 rounded-lg"></div>
+                      <div className="flex-1 space-y-2">
+                        <div className="h-3 bg-slate-200 rounded w-32"></div>
+                        <div className="h-6 bg-slate-300 rounded w-16"></div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Weekly KPI & Donut Chart Skeleton */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+                {/* KPI Mingguan Skeleton */}
+                <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm border border-slate-200 animate-pulse">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 bg-slate-200 rounded-lg"></div>
+                    <div className="flex-1 space-y-2">
+                      <div className="h-3 bg-slate-200 rounded w-40"></div>
+                      <div className="h-6 bg-slate-300 rounded w-20"></div>
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t border-slate-100 mt-2">
+                    <div className="h-3 bg-slate-200 rounded w-32"></div>
+                  </div>
+                </div>
+
+                {/* Donut Chart Skeleton */}
+                <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm border border-slate-200 animate-pulse">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-slate-200 rounded-lg"></div>
+                    <div className="flex-1 space-y-2">
+                      <div className="h-3 bg-slate-200 rounded w-36"></div>
+                      <div className="h-3 bg-slate-200 rounded w-20"></div>
+                    </div>
+                  </div>
+                  <div className="h-48 bg-slate-200 rounded-lg"></div>
+                </div>
+              </div>
+
+              {/* Bar Chart Skeleton */}
+              <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm border border-slate-200 animate-pulse">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-slate-200 rounded-lg"></div>
+                  <div className="flex-1 space-y-2">
+                    <div className="h-3 bg-slate-200 rounded w-32"></div>
+                    <div className="h-3 bg-slate-200 rounded w-40"></div>
+                  </div>
+                </div>
+                <div className="h-56 bg-slate-200 rounded-lg"></div>
+              </div>
+
+              {/* Today Employees & Recent Activities Skeleton */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+                {/* Today Employees Skeleton */}
+                <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm border border-slate-200">
+                  <div className="h-5 bg-slate-200 rounded w-40 mb-4 animate-pulse"></div>
+                  <div className="space-y-2">
+                    <SkeletonCard variant="default" count={3} />
+                  </div>
+                </div>
+
+                {/* Recent Activities Skeleton */}
+                <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm border border-slate-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="h-5 bg-slate-200 rounded w-40 animate-pulse"></div>
+                    <div className="h-8 bg-slate-200 rounded w-24 animate-pulse"></div>
+                  </div>
+                  <div className="space-y-2">
+                    <SkeletonCard variant="default" count={3} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </main>
         </div>
       </div>
     );
@@ -857,11 +981,16 @@ export default function AdminDashboard() {
                       <div key={emp.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-all border border-slate-100">
                         {/* Avatar & Info */}
                         {emp.avatar_url ? (
-                          <img 
-                            src={emp.avatar_url} 
-                            alt={emp.full_name}
-                            className="w-10 h-10 rounded-lg object-cover flex-shrink-0 shadow-sm border-2 border-white"
-                          />
+                          <div className="relative w-10 h-10 rounded-lg flex-shrink-0 shadow-sm border-2 border-white overflow-hidden">
+                            <Image 
+                              src={emp.avatar_url} 
+                              alt={emp.full_name}
+                              fill
+                              className="object-cover"
+                              sizes="40px"
+                              unoptimized
+                            />
+                          </div>
                         ) : (
                           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0 shadow-sm">
                             {emp.full_name.charAt(0)}
@@ -924,7 +1053,16 @@ export default function AdminDashboard() {
                         {/* Avatar */}
                         <div className="flex items-center gap-3">
                           {activity.employee?.avatar_url ? (
-                            <img src={activity.employee.avatar_url} alt={activity.employee.full_name} className="w-10 h-10 rounded-lg object-cover border-2 border-white shadow-sm" />
+                            <div className="relative w-10 h-10 rounded-lg border-2 border-white shadow-sm overflow-hidden">
+                              <Image 
+                                src={activity.employee.avatar_url} 
+                                alt={activity.employee.full_name}
+                                fill
+                                className="object-cover"
+                                sizes="40px"
+                                unoptimized
+                              />
+                            </div>
                           ) : (
                             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold flex items-center justify-center shadow-sm">{(activity.employee?.full_name || 'U').substring(0,1)}</div>
                           )}

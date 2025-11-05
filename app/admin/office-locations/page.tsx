@@ -6,6 +6,8 @@ import AdminSidebar, { SidebarToggleButton } from '@/components/AdminSidebar';
 import SuccessNotification from '@/components/SuccessNotification';
 import ErrorNotification from '@/components/ErrorNotification';
 import ConfirmationModal from '@/components/ConfirmationModal';
+import SkeletonCard from '@/components/SkeletonCard';
+import { cachedFetch } from '@/lib/utils/apiCache';
 
 interface OfficeLocation {
   id: string;
@@ -70,10 +72,20 @@ export default function OfficeLocationsPage() {
     fetchDefaultGpsRadius();
   }, [router]);
 
-  const fetchDefaultGpsRadius = async () => {
+  const fetchDefaultGpsRadius = async (forceRefresh: boolean = false) => {
     try {
-      const response = await fetch('/api/system-settings');
-      const data = await response.json();
+      // Gunakan cached fetch dengan TTL 60 detik (60000ms) karena data jarang berubah
+      const data = await cachedFetch(
+        '/api/system-settings',
+        {
+          method: 'GET',
+          headers: {
+            'Cache-Control': 'no-cache',
+          }
+        },
+        60000, // TTL 60 detik
+        forceRefresh
+      );
       if (data?.success) {
         const value = parseInt(data.data?.gps_accuracy_radius?.value || '3000');
         setDefaultGpsRadius(isNaN(value) ? 3000 : value);
@@ -84,10 +96,21 @@ export default function OfficeLocationsPage() {
     }
   };
 
-  const fetchLocations = async () => {
+  const fetchLocations = async (forceRefresh: boolean = false) => {
     try {
-      const response = await fetch('/api/office-locations');
-      const data = await response.json();
+      // Gunakan cached fetch dengan TTL 30 detik (30000ms)
+      // Force refresh saat add/edit/delete untuk mendapatkan data terbaru
+      const data = await cachedFetch(
+        '/api/office-locations',
+        {
+          method: 'GET',
+          headers: {
+            'Cache-Control': 'no-cache',
+          }
+        },
+        30000, // TTL 30 detik
+        forceRefresh
+      );
       
       if (data.success) {
         setLocations(data.data);
@@ -193,7 +216,7 @@ export default function OfficeLocationsPage() {
 
         setNotification({ show: true, type: 'success', message: editingLocation ? 'Lokasi berhasil diupdate!' : 'Lokasi berhasil ditambahkan!' });
         setShowModal(false);
-        fetchLocations();
+        fetchLocations(true); // Force refresh untuk mendapatkan data terbaru
       } else {
         setNotification({ show: true, type: 'error', message: data.error || 'Gagal menyimpan lokasi' });
       }
@@ -218,7 +241,7 @@ export default function OfficeLocationsPage() {
 
       if (data.success) {
         setNotification({ show: true, type: 'success', message: 'Status lokasi berhasil diubah!' });
-        fetchLocations();
+        fetchLocations(true); // Force refresh untuk mendapatkan data terbaru
       } else {
         setNotification({ show: true, type: 'error', message: data.error || 'Gagal mengubah status lokasi' });
       }
@@ -245,7 +268,7 @@ export default function OfficeLocationsPage() {
 
       if (data.success) {
         setNotification({ show: true, type: 'success', message: 'Lokasi berhasil dihapus!' });
-        fetchLocations();
+        fetchLocations(true); // Force refresh untuk mendapatkan data terbaru
       } else {
         setNotification({ show: true, type: 'error', message: data.error || 'Gagal menghapus lokasi' });
       }
@@ -356,10 +379,53 @@ export default function OfficeLocationsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600 font-medium">Memuat data lokasi...</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        <AdminSidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
+
+        <div className="lg:ml-64 min-h-screen">
+          {/* Header */}
+          <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-slate-200 shadow-sm">
+            <div className="px-4 sm:px-6 lg:px-8 py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3 flex-1 lg:flex-none">
+                  <SidebarToggleButton onClick={() => setIsSidebarOpen(true)} />
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center"></div>
+                    <div className="flex flex-col min-w-0">
+                      <div className="h-6 bg-slate-200 rounded w-32 animate-pulse"></div>
+                      <div className="h-4 bg-slate-200 rounded w-32 mt-1 animate-pulse"></div>
+                    </div>
+                  </div>
+                </div>
+                <div className="h-10 bg-slate-200 rounded-lg w-24 animate-pulse"></div>
+              </div>
+            </div>
+          </header>
+
+          {/* Main Content */}
+          <main className="p-4 sm:p-6 lg:p-8">
+            <div className="max-w-7xl mx-auto">
+              {/* Stats Skeleton */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="bg-white rounded-xl p-5 shadow-sm border border-slate-200 animate-pulse">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-slate-200 rounded-lg"></div>
+                      <div className="flex-1 space-y-2">
+                        <div className="h-3 bg-slate-200 rounded w-24"></div>
+                        <div className="h-6 bg-slate-300 rounded w-12"></div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Location List Skeleton */}
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                <SkeletonCard variant="default" count={6} />
+              </div>
+            </div>
+          </main>
         </div>
       </div>
     );

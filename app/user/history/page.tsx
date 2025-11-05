@@ -1,8 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import UserSidebar, { SidebarToggleButton } from '@/components/UserSidebar';
+import SkeletonCard from '@/components/SkeletonCard';
+import { cachedFetch } from '@/lib/utils/apiCache';
 
 export default function UserHistoryPage() {
   const router = useRouter();
@@ -27,30 +29,58 @@ export default function UserHistoryPage() {
     }
 
     setUser(parsedUser);
-    fetchEmployeeData(parsedUser.email);
+    
+    (async () => {
+      try {
+        await fetchEmployeeData(parsedUser.email);
+      } catch (error) {
+        console.error('Error fetching history data:', error);
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [router]);
 
-  const fetchEmployeeData = async (email: string) => {
+  const fetchEmployeeData = async (email: string, forceRefresh: boolean = false) => {
     try {
-      const response = await fetch(`/api/employees?email=${email}`);
-      const data = await response.json();
+      // Gunakan cached fetch dengan TTL 60 detik (60000ms) karena data employee jarang berubah
+      const data = await cachedFetch(
+        `/api/employees?email=${email}`,
+        {
+          method: 'GET',
+          headers: {
+            'Cache-Control': 'no-cache',
+          }
+        },
+        60000, // TTL 60 detik
+        forceRefresh
+      );
       
       if (data.success && data.data.length > 0) {
         const emp = data.data[0];
         setEmployee(emp);
-        fetchAttendanceHistory(emp.id);
+        // Fetch attendance history setelah employee didapat
+        await fetchAttendanceHistory(emp.id);
       }
     } catch (error) {
       console.error('Error fetching employee data:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
-  const fetchAttendanceHistory = async (employeeId: string) => {
+  const fetchAttendanceHistory = async (employeeId: string, forceRefresh: boolean = false) => {
     try {
-      const response = await fetch(`/api/attendance/history?employee_id=${employeeId}&limit=100`);
-      const data = await response.json();
+      // Gunakan cached fetch dengan TTL 30 detik (30000ms) untuk history
+      const data = await cachedFetch(
+        `/api/attendance/history?employee_id=${employeeId}&limit=100`,
+        {
+          method: 'GET',
+          headers: {
+            'Cache-Control': 'no-cache',
+          }
+        },
+        30000, // TTL 30 detik
+        forceRefresh
+      );
       
       if (data.success) {
         setAttendanceHistory(data.data);
@@ -69,19 +99,6 @@ export default function UserHistoryPage() {
     if (!dateString) return '-';
     const date = new Date(dateString);
     return date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-  };
-
-  const filterAttendance = () => {
-    const now = new Date();
-    const filtered = attendanceHistory.filter((record) => {
-      const recordDate = new Date(record.check_in_time);
-      const diffDays = Math.floor((now.getTime() - recordDate.getTime()) / (1000 * 60 * 60 * 24));
-      
-      if (filter === '7days') return diffDays <= 7;
-      if (filter === '30days') return diffDays <= 30;
-      return true;
-    });
-    return filtered;
   };
 
   // Helper function: Klasifikasi status detail berdasarkan data yang ada
@@ -106,7 +123,80 @@ export default function UserHistoryPage() {
     return 'on_time';
   };
 
-  const filteredRecords = filterAttendance();
+  // Memoize filtered records untuk menghindari re-filtering yang tidak perlu
+  const filteredRecords = useMemo(() => {
+    const now = new Date();
+    return attendanceHistory.filter((record) => {
+      const recordDate = new Date(record.check_in_time);
+      const diffDays = Math.floor((now.getTime() - recordDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (filter === '7days') return diffDays <= 7;
+      if (filter === '30days') return diffDays <= 30;
+      return true;
+    });
+  }, [attendanceHistory, filter]);
+
+  // Memoize stats calculations untuk menghindari re-calculation yang tidak perlu
+  const stats = useMemo(() => {
+    return {
+      total: filteredRecords.length,
+      onTime: filteredRecords.filter(r => getStatusDetail(r) === 'on_time').length,
+      withinTolerance: filteredRecords.filter(r => getStatusDetail(r) === 'within_tolerance').length,
+      lateBeyond: filteredRecords.filter(r => getStatusDetail(r) === 'late_beyond').length,
+    };
+  }, [filteredRecords]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        <UserSidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
+
+        <div className="lg:ml-64 min-h-screen">
+          {/* Header */}
+          <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-slate-200 shadow-sm">
+            <div className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                  <SidebarToggleButton onClick={() => setIsSidebarOpen(true)} />
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0"></div>
+                  <div className="flex flex-col min-w-0">
+                    <div className="h-6 bg-slate-200 rounded w-40 animate-pulse"></div>
+                    <div className="h-4 bg-slate-200 rounded w-48 mt-1 animate-pulse"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          {/* Main Content */}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            {/* Stats Cards Skeleton */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200 animate-pulse">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-slate-200 rounded-xl"></div>
+                    <div className="flex-1 space-y-2">
+                      <div className="h-3 bg-slate-200 rounded w-20"></div>
+                      <div className="h-6 bg-slate-300 rounded w-12"></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* History List Skeleton */}
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+              <div className="h-6 bg-slate-200 rounded w-40 mb-4 animate-pulse"></div>
+              <div className="space-y-3">
+                <SkeletonCard variant="attendance" count={5} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -146,7 +236,7 @@ export default function UserHistoryPage() {
                 </div>
                 <div className="flex-1">
                   <p className="text-xs text-slate-500 font-medium">Total Absensi</p>
-                  <p className="text-2xl font-bold text-slate-900">{filteredRecords.length}</p>
+                  <p className="text-2xl font-bold text-slate-900">{stats.total}</p>
                   <p className="text-xs text-slate-500 mt-1">Periode yang dipilih</p>
                 </div>
               </div>
@@ -162,9 +252,7 @@ export default function UserHistoryPage() {
                 </div>
                 <div className="flex-1">
                   <p className="text-xs text-slate-500 font-medium">Tepat Waktu</p>
-                  <p className="text-2xl font-bold text-green-600">
-                    {filteredRecords.filter(r => getStatusDetail(r) === 'on_time').length}
-                  </p>
+                  <p className="text-2xl font-bold text-green-600">{stats.onTime}</p>
                   <p className="text-xs text-slate-500 mt-1">Masuk tepat waktu</p>
                 </div>
               </div>
@@ -180,9 +268,7 @@ export default function UserHistoryPage() {
                 </div>
                 <div className="flex-1">
                   <p className="text-xs text-slate-500 font-medium">Dalam Toleransi</p>
-                  <p className="text-2xl font-bold text-orange-600">
-                    {filteredRecords.filter(r => getStatusDetail(r) === 'within_tolerance').length}
-                  </p>
+                  <p className="text-2xl font-bold text-orange-600">{stats.withinTolerance}</p>
                   <p className="text-xs text-slate-500 mt-1">Masuk dalam batas</p>
                 </div>
               </div>
@@ -198,9 +284,7 @@ export default function UserHistoryPage() {
                 </div>
                 <div className="flex-1">
                   <p className="text-xs text-slate-500 font-medium">Terlambat</p>
-                  <p className="text-2xl font-bold text-red-600">
-                    {filteredRecords.filter(r => getStatusDetail(r) === 'late_beyond').length}
-                  </p>
+                  <p className="text-2xl font-bold text-red-600">{stats.lateBeyond}</p>
                   <p className="text-xs text-slate-500 mt-1">Lewat batas toleransi</p>
                 </div>
               </div>

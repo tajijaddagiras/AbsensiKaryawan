@@ -2,11 +2,35 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import FaceVerificationCamera from '@/components/FaceVerificationCamera';
-import VerificationResultModal from '@/components/VerificationResultModal';
-import CheckInOutSuccessModal from '@/components/CheckInOutSuccessModal';
-import CheckInOutErrorModal from '@/components/CheckInOutErrorModal';
+import Image from 'next/image';
+import dynamic from 'next/dynamic';
 import UserSidebar, { SidebarToggleButton } from '@/components/UserSidebar';
+import SkeletonCard from '@/components/SkeletonCard';
+
+// Lazy load Camera dan Modal components untuk mengurangi initial bundle size
+const FaceVerificationCamera = dynamic(() => import('@/components/FaceVerificationCamera'), {
+  ssr: false,
+  loading: () => (
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center">
+      <div className="bg-white rounded-xl p-6 text-center">
+        <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-slate-600 font-medium">Memuat kamera...</p>
+      </div>
+    </div>
+  )
+});
+
+const VerificationResultModal = dynamic(() => import('@/components/VerificationResultModal'), {
+  ssr: false
+});
+
+const CheckInOutSuccessModal = dynamic(() => import('@/components/CheckInOutSuccessModal'), {
+  ssr: false
+});
+
+const CheckInOutErrorModal = dynamic(() => import('@/components/CheckInOutErrorModal'), {
+  ssr: false
+});
 
 export default function AttendancePage() {
   const router = useRouter();
@@ -17,6 +41,7 @@ export default function AttendancePage() {
   const [todayAttendance, setTodayAttendance] = useState<any>(null);
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [todaySchedule, setTodaySchedule] = useState<any>(null);
   const [isHoliday, setIsHoliday] = useState<any>(null);
   
@@ -80,10 +105,22 @@ export default function AttendancePage() {
     
     const parsedUser = JSON.parse(storedUser);
     setUser(parsedUser);
-    fetchEmployeeData(parsedUser.email);
-    getLocation();
-    fetchTodaySchedule();
-    checkHoliday();
+    
+    (async () => {
+      try {
+        await Promise.all([
+          fetchEmployeeData(parsedUser.email),
+          fetchTodaySchedule(),
+          checkHoliday(),
+        ]);
+        // getLocation tidak perlu di Promise.all karena bukan async fetch
+        getLocation();
+      } catch (error) {
+        console.error('Error fetching attendance data:', error);
+      } finally {
+        setInitialLoading(false);
+      }
+    })();
   }, [router]);
 
   const fetchTodaySchedule = async () => {
@@ -532,6 +569,52 @@ export default function AttendancePage() {
     timeZone: 'Asia/Jakarta'
   });
 
+  if (initialLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        <UserSidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
+
+        <div className="lg:ml-64 min-h-screen">
+          {/* Header */}
+          <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-slate-200 shadow-sm">
+            <div className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                  <SidebarToggleButton onClick={() => setIsSidebarOpen(true)} />
+                  <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center flex-shrink-0"></div>
+                  <div className="flex flex-col min-w-0">
+                    <div className="h-6 bg-slate-200 rounded w-24 animate-pulse"></div>
+                    <div className="h-4 bg-slate-200 rounded w-32 mt-1 animate-pulse"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          {/* Main Content */}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            {/* Banner Skeleton */}
+            <div className="h-32 bg-slate-200 rounded-xl mb-6 animate-pulse"></div>
+
+            {/* Check-in/out Card Skeleton */}
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 mb-6 animate-pulse">
+              <div className="h-8 bg-slate-200 rounded w-48 mb-4"></div>
+              <div className="h-32 bg-slate-200 rounded-lg"></div>
+            </div>
+
+            {/* Today Attendance Skeleton */}
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+              <div className="h-6 bg-slate-200 rounded w-40 mb-4 animate-pulse"></div>
+              <div className="space-y-3">
+                <SkeletonCard variant="default" count={2} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <UserSidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
@@ -581,11 +664,16 @@ export default function AttendancePage() {
             <div className="bg-white rounded-xl p-3 sm:p-4 mb-4 shadow-sm border border-slate-200">
               <div className="flex items-center gap-3">
                 {employee.avatar_url ? (
-                  <img 
-                    src={employee.avatar_url} 
-                    alt={employee.full_name}
-                    className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover shadow-sm border border-slate-200"
-                  />
+                  <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+                    <Image 
+                      src={employee.avatar_url} 
+                      alt={employee.full_name}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 640px) 48px, 56px"
+                      unoptimized
+                    />
+                  </div>
                 ) : (
                   <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-sm">
                     {getInitials(employee.full_name)}

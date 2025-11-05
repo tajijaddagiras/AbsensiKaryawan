@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation';
 import AdminSidebar, { SidebarToggleButton } from '@/components/AdminSidebar';
 import SuccessNotification from '@/components/SuccessNotification';
 import ErrorNotification from '@/components/ErrorNotification';
+import ConfirmationModal from '@/components/ConfirmationModal';
+import SkeletonCard from '@/components/SkeletonCard';
+import { cachedFetch } from '@/lib/utils/apiCache';
 
 interface WorkSchedule {
   id: string;
@@ -77,6 +80,14 @@ export default function SchedulePolicyPage() {
   const [showEditPolicyModal, setShowEditPolicyModal] = useState(false);
   const [editingHoliday, setEditingHoliday] = useState<Holiday | null>(null);
   const [editingPolicy, setEditingPolicy] = useState<Policy | null>(null);
+  const [confirmDeleteHoliday, setConfirmDeleteHoliday] = useState<{
+    show: boolean;
+    holiday: Holiday | null;
+  }>({ show: false, holiday: null });
+  const [confirmDeletePolicy, setConfirmDeletePolicy] = useState<{
+    show: boolean;
+    policy: Policy | null;
+  }>({ show: false, policy: null });
   const [notification, setNotification] = useState<{
     show: boolean;
     type: 'success' | 'error';
@@ -117,10 +128,20 @@ export default function SchedulePolicyPage() {
     })();
   }, [router]);
 
-  const fetchWorkSchedules = async () => {
+  const fetchWorkSchedules = async (forceRefresh: boolean = false) => {
     try {
-      const response = await fetch('/api/work-schedules');
-      const data = await response.json();
+      // Gunakan cached fetch dengan TTL 60 detik (60000ms) karena data jarang berubah
+      const data = await cachedFetch(
+        '/api/work-schedules',
+        {
+          method: 'GET',
+          headers: {
+            'Cache-Control': 'no-cache',
+          }
+        },
+        60000, // TTL 60 detik
+        forceRefresh
+      );
       if (data.success) {
         setWorkSchedule(data.data);
       }
@@ -129,10 +150,20 @@ export default function SchedulePolicyPage() {
     }
   };
 
-  const fetchHolidays = async () => {
+  const fetchHolidays = async (forceRefresh: boolean = false) => {
     try {
-      const response = await fetch('/api/holidays');
-      const data = await response.json();
+      // Gunakan cached fetch dengan TTL 60 detik (60000ms) karena data jarang berubah
+      const data = await cachedFetch(
+        '/api/holidays',
+        {
+          method: 'GET',
+          headers: {
+            'Cache-Control': 'no-cache',
+          }
+        },
+        60000, // TTL 60 detik
+        forceRefresh
+      );
       if (data.success) {
         setHolidays(data.data);
       }
@@ -141,10 +172,20 @@ export default function SchedulePolicyPage() {
     }
   };
 
-  const fetchPolicies = async () => {
+  const fetchPolicies = async (forceRefresh: boolean = false) => {
     try {
-      const response = await fetch('/api/policies');
-      const data = await response.json();
+      // Gunakan cached fetch dengan TTL 60 detik (60000ms) karena data jarang berubah
+      const data = await cachedFetch(
+        '/api/policies',
+        {
+          method: 'GET',
+          headers: {
+            'Cache-Control': 'no-cache',
+          }
+        },
+        60000, // TTL 60 detik
+        forceRefresh
+      );
       if (data.success) {
         setPolicies(data.data);
       }
@@ -168,7 +209,7 @@ export default function SchedulePolicyPage() {
         });
       }
       setNotification({ show: true, type: 'success', message: 'Jadwal kerja berhasil disimpan!' });
-      fetchWorkSchedules();
+      fetchWorkSchedules(true); // Force refresh untuk mendapatkan data terbaru
     } catch (error) {
       console.error('Error saving schedules:', error);
       setNotification({ show: true, type: 'error', message: 'Gagal menyimpan jadwal kerja' });
@@ -185,7 +226,7 @@ export default function SchedulePolicyPage() {
       const data = await response.json();
       if (data.success) {
         setNotification({ show: true, type: 'success', message: 'Hari libur berhasil ditambahkan!' });
-        fetchHolidays();
+        fetchHolidays(true); // Force refresh untuk mendapatkan data terbaru
         setShowAddHolidayModal(false);
       } else {
         setNotification({ show: true, type: 'error', message: data.error || 'Gagal menambahkan hari libur' });
@@ -206,7 +247,7 @@ export default function SchedulePolicyPage() {
       const data = await response.json();
       if (data.success) {
         setNotification({ show: true, type: 'success', message: 'Hari libur berhasil diupdate!' });
-        fetchHolidays();
+        fetchHolidays(true); // Force refresh untuk mendapatkan data terbaru
         setShowEditHolidayModal(false);
         setEditingHoliday(null);
       } else {
@@ -218,23 +259,29 @@ export default function SchedulePolicyPage() {
     }
   };
 
-  const handleDeleteHoliday = async (id: string) => {
-    if (confirm('Hapus hari libur ini?')) {
-      try {
-        const response = await fetch(`/api/holidays?id=${id}`, {
-          method: 'DELETE',
-        });
-        const data = await response.json();
-        if (data.success) {
-          setNotification({ show: true, type: 'success', message: 'Hari libur berhasil dihapus!' });
-          fetchHolidays();
-        } else {
-          setNotification({ show: true, type: 'error', message: data.error || 'Gagal menghapus hari libur' });
-        }
-      } catch (error) {
-        console.error('Error deleting holiday:', error);
-        setNotification({ show: true, type: 'error', message: 'Gagal menghapus hari libur' });
+  const handleDeleteHoliday = (holiday: Holiday) => {
+    setConfirmDeleteHoliday({ show: true, holiday });
+  };
+
+  const handleDeleteHolidayConfirm = async () => {
+    if (!confirmDeleteHoliday.holiday) return;
+    
+    try {
+      const response = await fetch(`/api/holidays?id=${confirmDeleteHoliday.holiday.id}`, {
+        method: 'DELETE',
+      });
+      const data = await response.json();
+      if (data.success) {
+        setNotification({ show: true, type: 'success', message: 'Hari libur berhasil dihapus!' });
+        fetchHolidays(true); // Force refresh untuk mendapatkan data terbaru
+      } else {
+        setNotification({ show: true, type: 'error', message: data.error || 'Gagal menghapus hari libur' });
       }
+    } catch (error) {
+      console.error('Error deleting holiday:', error);
+      setNotification({ show: true, type: 'error', message: 'Gagal menghapus hari libur' });
+    } finally {
+      setConfirmDeleteHoliday({ show: false, holiday: null });
     }
   };
 
@@ -248,7 +295,7 @@ export default function SchedulePolicyPage() {
       const data = await response.json();
       if (data.success) {
         setNotification({ show: true, type: 'success', message: 'Kebijakan berhasil ditambahkan!' });
-        fetchPolicies();
+        fetchPolicies(true); // Force refresh untuk mendapatkan data terbaru
         setShowAddPolicyModal(false);
       } else {
         setNotification({ show: true, type: 'error', message: data.error || 'Gagal menambahkan kebijakan' });
@@ -269,7 +316,7 @@ export default function SchedulePolicyPage() {
       const data = await response.json();
       if (data.success) {
         setNotification({ show: true, type: 'success', message: 'Kebijakan berhasil diupdate!' });
-        fetchPolicies();
+        fetchPolicies(true); // Force refresh untuk mendapatkan data terbaru
         setShowEditPolicyModal(false);
         setEditingPolicy(null);
       } else {
@@ -281,23 +328,29 @@ export default function SchedulePolicyPage() {
     }
   };
 
-  const handleDeletePolicy = async (id: string) => {
-    if (confirm('Hapus kebijakan ini?')) {
-      try {
-        const response = await fetch(`/api/policies?id=${id}`, {
-          method: 'DELETE',
-        });
-        const data = await response.json();
-        if (data.success) {
-          setNotification({ show: true, type: 'success', message: 'Kebijakan berhasil dihapus!' });
-          fetchPolicies();
-        } else {
-          setNotification({ show: true, type: 'error', message: data.error || 'Gagal menghapus kebijakan' });
-        }
-      } catch (error) {
-        console.error('Error deleting policy:', error);
-        setNotification({ show: true, type: 'error', message: 'Gagal menghapus kebijakan' });
+  const handleDeletePolicy = (policy: Policy) => {
+    setConfirmDeletePolicy({ show: true, policy });
+  };
+
+  const handleDeletePolicyConfirm = async () => {
+    if (!confirmDeletePolicy.policy) return;
+    
+    try {
+      const response = await fetch(`/api/policies?id=${confirmDeletePolicy.policy.id}`, {
+        method: 'DELETE',
+      });
+      const data = await response.json();
+      if (data.success) {
+        setNotification({ show: true, type: 'success', message: 'Kebijakan berhasil dihapus!' });
+        fetchPolicies(true); // Force refresh untuk mendapatkan data terbaru
+      } else {
+        setNotification({ show: true, type: 'error', message: data.error || 'Gagal menghapus kebijakan' });
       }
+    } catch (error) {
+      console.error('Error deleting policy:', error);
+      setNotification({ show: true, type: 'error', message: 'Gagal menghapus kebijakan' });
+    } finally {
+      setConfirmDeletePolicy({ show: false, policy: null });
     }
   };
 
@@ -308,10 +361,75 @@ export default function SchedulePolicyPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600 font-medium">Memuat data jadwal dan kebijakan...</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        <AdminSidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
+
+        <div className="lg:ml-64 min-h-screen">
+          {/* Header */}
+          <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-slate-200 shadow-sm">
+            <div className="px-4 sm:px-6 lg:px-8 py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3 flex-1 lg:flex-none">
+                  <SidebarToggleButton onClick={() => setIsSidebarOpen(true)} />
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center"></div>
+                    <div className="flex flex-col min-w-0">
+                      <div className="h-6 bg-slate-200 rounded w-48 animate-pulse"></div>
+                      <div className="h-4 bg-slate-200 rounded w-32 mt-1 animate-pulse"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          {/* Main Content */}
+          <main className="p-4 sm:p-6 lg:p-8">
+            <div className="max-w-7xl mx-auto">
+              {/* Tabs Skeleton */}
+              <div className="mb-6">
+                <div className="bg-white rounded-xl sm:rounded-2xl p-2 shadow-sm border border-slate-200">
+                  <div className="grid grid-cols-3 gap-2">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="h-10 bg-slate-200 rounded-lg animate-pulse"></div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Info Box Skeleton */}
+              <div className="mb-6 bg-slate-100 border border-slate-200 rounded-lg p-4 animate-pulse">
+                <div className="h-4 bg-slate-200 rounded w-full mb-2"></div>
+                <div className="h-4 bg-slate-200 rounded w-5/6"></div>
+              </div>
+
+              {/* Schedule List Skeleton */}
+              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200">
+                <div className="h-6 bg-slate-200 rounded w-48 mb-6 animate-pulse"></div>
+                <div className="space-y-3">
+                  {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+                    <div key={i} className="bg-slate-50 rounded-lg p-4 border border-slate-200 animate-pulse">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-slate-200 rounded-lg"></div>
+                          <div className="space-y-2">
+                            <div className="h-4 bg-slate-200 rounded w-24"></div>
+                            <div className="h-3 bg-slate-200 rounded w-20"></div>
+                          </div>
+                        </div>
+                        <div className="h-6 w-11 bg-slate-200 rounded-full"></div>
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        {[1, 2, 3, 4].map((j) => (
+                          <div key={j} className="h-16 bg-slate-200 rounded-lg"></div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </main>
         </div>
       </div>
     );
@@ -403,16 +521,17 @@ export default function SchedulePolicyPage() {
                 </svg>
                 <span>Jadwal Kerja Mingguan</span>
               </h2>
-              <button
-                onClick={handleSaveSchedule}
-                className="px-4 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-lg font-semibold transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </div>
+
+            <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-blue-700 text-sm flex items-start gap-2">
+                <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1 a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                 </svg>
-                <span className="hidden sm:inline">Simpan Perubahan</span>
-                <span className="sm:hidden">Simpan</span>
-              </button>
+                <span>
+                  <strong>Jadwal & Toleransi:</strong> Sistem akan otomatis menandai karyawan sebagai "terlambat" jika check-in melebihi toleransi yang ditentukan. Contoh: Jam masuk 09:00 dengan toleransi 15 menit = status "late" jika check-in di atas 09:15.
+                </span>
+              </p>
             </div>
 
             <div className="space-y-3">
@@ -587,15 +706,17 @@ export default function SchedulePolicyPage() {
               ))}
             </div>
 
-            <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-blue-700 text-sm flex items-start gap-2">
-                <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1 a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+            <div className="mt-6 flex sm:justify-end">
+              <button
+                onClick={handleSaveSchedule}
+                className="w-full sm:w-auto px-4 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-lg font-semibold transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                <span>
-                  <strong>Jadwal & Toleransi:</strong> Sistem akan otomatis menandai karyawan sebagai "terlambat" jika check-in melebihi toleransi yang ditentukan. Contoh: Jam masuk 09:00 dengan toleransi 15 menit = status "late" jika check-in di atas 09:15.
-                </span>
-              </p>
+                <span className="hidden sm:inline">Simpan Perubahan</span>
+                <span className="sm:hidden">Simpan</span>
+              </button>
             </div>
           </div>
         )}
@@ -647,7 +768,7 @@ export default function SchedulePolicyPage() {
                         </svg>
                       </button>
                       <button
-                        onClick={() => handleDeleteHoliday(holiday.id)}
+                        onClick={() => handleDeleteHoliday(holiday)}
                         className="p-2 hover:bg-red-100 rounded-lg transition-all text-red-600 flex-shrink-0"
                         title="Hapus"
                       >
@@ -725,7 +846,7 @@ export default function SchedulePolicyPage() {
                         </svg>
                       </button>
                       <button
-                        onClick={() => handleDeletePolicy(policy.id)}
+                        onClick={() => handleDeletePolicy(policy)}
                         className="p-2 hover:bg-red-100 rounded-lg transition-all text-red-600 flex-shrink-0"
                         title="Hapus"
                       >
@@ -1178,6 +1299,32 @@ export default function SchedulePolicyPage() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Confirmation Modal for Delete Holiday */}
+      {confirmDeleteHoliday.show && confirmDeleteHoliday.holiday && (
+        <ConfirmationModal
+          isOpen={confirmDeleteHoliday.show}
+          title="Hapus Hari Libur?"
+          message={`Apakah Anda yakin ingin menghapus hari libur "${confirmDeleteHoliday.holiday.name}"?\n\nData yang dihapus tidak dapat dikembalikan!`}
+          confirmText="Ya, Hapus"
+          cancelText="Batal"
+          onConfirm={handleDeleteHolidayConfirm}
+          onCancel={() => setConfirmDeleteHoliday({ show: false, holiday: null })}
+        />
+      )}
+
+      {/* Confirmation Modal for Delete Policy */}
+      {confirmDeletePolicy.show && confirmDeletePolicy.policy && (
+        <ConfirmationModal
+          isOpen={confirmDeletePolicy.show}
+          title="Hapus Kebijakan?"
+          message={`Apakah Anda yakin ingin menghapus kebijakan "${confirmDeletePolicy.policy.title}"?\n\nData yang dihapus tidak dapat dikembalikan!`}
+          confirmText="Ya, Hapus"
+          cancelText="Batal"
+          onConfirm={handleDeletePolicyConfirm}
+          onCancel={() => setConfirmDeletePolicy({ show: false, policy: null })}
+        />
       )}
 
       {/* Notifications */}

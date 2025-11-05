@@ -1,8 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import UserSidebar, { SidebarToggleButton } from '@/components/UserSidebar';
+import SuccessNotification from '@/components/SuccessNotification';
+import ErrorNotification from '@/components/ErrorNotification';
+import SkeletonCard from '@/components/SkeletonCard';
+import { cachedFetch } from '@/lib/utils/apiCache';
 
 interface LeaveRequest {
   id: string;
@@ -28,6 +32,12 @@ export default function UserLeavePage() {
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
   const [showFormModal, setShowFormModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [notification, setNotification] = useState<{
+    show: boolean;
+    type: 'success' | 'error';
+    message: string;
+  }>({ show: false, type: 'success', message: '' });
   const [formData, setFormData] = useState({
     leave_type: 'sick' as 'sick' | 'annual' | 'personal' | 'emergency',
     start_date: '',
@@ -49,31 +59,58 @@ export default function UserLeavePage() {
     }
 
     setUser(parsedUser);
-    fetchEmployeeData(parsedUser.email);
+    
+    (async () => {
+      try {
+        await fetchEmployeeData(parsedUser.email);
+      } catch (error) {
+        console.error('Error fetching leave data:', error);
+      } finally {
+        setInitialLoading(false);
+      }
+    })();
   }, [router]);
 
-  const fetchEmployeeData = async (email: string) => {
+  const fetchEmployeeData = async (email: string, forceRefresh: boolean = false) => {
     try {
-      setLoading(true);
-      const response = await fetch(`/api/employees?email=${email}`);
-      const data = await response.json();
+      // Gunakan cached fetch dengan TTL 60 detik (60000ms) karena data employee jarang berubah
+      const data = await cachedFetch(
+        `/api/employees?email=${email}`,
+        {
+          method: 'GET',
+          headers: {
+            'Cache-Control': 'no-cache',
+          }
+        },
+        60000, // TTL 60 detik
+        forceRefresh
+      );
       
       if (data.success && data.data.length > 0) {
         setEmployee(data.data[0]);
-        // Fetch leave requests from API
+        // Fetch leave requests setelah employee didapat
         await fetchLeaveRequests(data.data[0].user_id);
       }
     } catch (error) {
       console.error('Error fetching employee data:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
-  const fetchLeaveRequests = async (userId: string) => {
+  const fetchLeaveRequests = async (userId: string, forceRefresh: boolean = false) => {
     try {
-      const response = await fetch(`/api/leave-requests?user_id=${userId}`);
-      const data = await response.json();
+      // Gunakan cached fetch dengan TTL 30 detik (30000ms)
+      // Force refresh saat submit leave request untuk mendapatkan data terbaru
+      const data = await cachedFetch(
+        `/api/leave-requests?user_id=${userId}`,
+        {
+          method: 'GET',
+          headers: {
+            'Cache-Control': 'no-cache',
+          }
+        },
+        30000, // TTL 30 detik
+        forceRefresh
+      );
       
       if (data.success) {
         setLeaveRequests(data.data);
@@ -103,13 +140,13 @@ export default function UserLeavePage() {
     e.preventDefault();
     
     if (!user) {
-      alert('Data user tidak ditemukan');
+      setNotification({ show: true, type: 'error', message: 'Data user tidak ditemukan' });
       return;
     }
 
     const days = calculateDays();
     if (days <= 0) {
-      alert('Tanggal tidak valid');
+      setNotification({ show: true, type: 'error', message: 'Tanggal tidak valid' });
       return;
     }
 
@@ -129,7 +166,7 @@ export default function UserLeavePage() {
       const data = await response.json();
 
       if (data.success) {
-        alert('✅ Pengajuan izin berhasil dikirim!');
+        setNotification({ show: true, type: 'success', message: 'Pengajuan izin berhasil dikirim!' });
         setShowFormModal(false);
         setFormData({
           leave_type: 'sick',
@@ -138,13 +175,13 @@ export default function UserLeavePage() {
           reason: '',
         });
         // Refresh leave requests
-        await fetchLeaveRequests(user.id);
+        await fetchLeaveRequests(user.id, true); // Force refresh untuk mendapatkan data terbaru
       } else {
-        alert('❌ Gagal mengirim pengajuan: ' + data.message);
+        setNotification({ show: true, type: 'error', message: data.message || 'Gagal mengirim pengajuan izin' });
       }
     } catch (error) {
       console.error('Error submitting leave request:', error);
-      alert('❌ Terjadi kesalahan saat mengirim pengajuan');
+      setNotification({ show: true, type: 'error', message: 'Terjadi kesalahan saat mengirim pengajuan izin' });
     } finally {
       setLoading(false);
     }
@@ -178,12 +215,65 @@ export default function UserLeavePage() {
     return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
   };
 
-  const stats = {
-    total: leaveRequests.length,
-    pending: leaveRequests.filter(r => r.status === 'pending').length,
-    approved: leaveRequests.filter(r => r.status === 'approved').length,
-    rejected: leaveRequests.filter(r => r.status === 'rejected').length,
-  };
+  // Memoize stats calculation untuk menghindari re-calculation yang tidak perlu
+  const stats = useMemo(() => {
+    return {
+      total: leaveRequests.length,
+      pending: leaveRequests.filter(r => r.status === 'pending').length,
+      approved: leaveRequests.filter(r => r.status === 'approved').length,
+      rejected: leaveRequests.filter(r => r.status === 'rejected').length,
+    };
+  }, [leaveRequests]);
+
+  if (initialLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        <UserSidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
+
+        <div className="lg:ml-64 min-h-screen">
+          {/* Header */}
+          <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-slate-200 shadow-sm">
+            <div className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                  <SidebarToggleButton onClick={() => setIsSidebarOpen(true)} />
+                  <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center flex-shrink-0"></div>
+                  <div className="flex flex-col min-w-0">
+                    <div className="h-6 bg-slate-200 rounded w-40 animate-pulse"></div>
+                    <div className="h-4 bg-slate-200 rounded w-32 mt-1 animate-pulse"></div>
+                  </div>
+                </div>
+                <div className="h-10 bg-slate-200 rounded-xl w-24 animate-pulse"></div>
+              </div>
+            </div>
+          </header>
+
+          {/* Main Content */}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            {/* Stats Cards Skeleton */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 animate-pulse">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 bg-slate-200 rounded-lg"></div>
+                    <div className="flex-1 space-y-2">
+                      <div className="h-3 bg-slate-200 rounded w-16"></div>
+                      <div className="h-6 bg-slate-300 rounded w-12"></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Leave Request List Skeleton */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
+              <SkeletonCard variant="leave" count={6} />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -504,6 +594,22 @@ export default function UserLeavePage() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Notifications */}
+      {notification.type === 'success' && (
+        <SuccessNotification
+          isOpen={notification.show}
+          message={notification.message}
+          onClose={() => setNotification({ show: false, type: 'success', message: '' })}
+        />
+      )}
+      {notification.type === 'error' && (
+        <ErrorNotification
+          isOpen={notification.show}
+          message={notification.message}
+          onClose={() => setNotification({ show: false, type: 'error', message: '' })}
+        />
       )}
     </div>
   );

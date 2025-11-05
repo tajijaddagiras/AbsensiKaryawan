@@ -1,10 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import AdminSidebar, { SidebarToggleButton } from '@/components/AdminSidebar';
 import SuccessNotification from '@/components/SuccessNotification';
 import ErrorNotification from '@/components/ErrorNotification';
+import SkeletonCard from '@/components/SkeletonCard';
+import { cachedFetch } from '@/lib/utils/apiCache';
 
 interface LeaveRequest {
   id: string;
@@ -66,11 +69,22 @@ export default function LeaveRequestPage() {
     fetchLeaveRequests();
   }, [router]);
 
-  const fetchLeaveRequests = async () => {
+  const fetchLeaveRequests = async (forceRefresh: boolean = false) => {
     try {
       setLoading(true);
-      const response = await fetch('/api/leave-requests');
-      const data = await response.json();
+      // Gunakan cached fetch dengan TTL 30 detik (30000ms)
+      // Force refresh saat approve/reject untuk mendapatkan data terbaru
+      const data = await cachedFetch(
+        '/api/leave-requests',
+        {
+          method: 'GET',
+          headers: {
+            'Cache-Control': 'no-cache',
+          }
+        },
+        30000, // TTL 30 detik
+        forceRefresh
+      );
       
       if (data.success) {
         setLeaveRequests(data.data);
@@ -115,7 +129,7 @@ export default function LeaveRequestPage() {
 
       if (data.success) {
         setNotification({ show: true, type: 'success', message: 'Pengajuan izin disetujui' });
-        await fetchLeaveRequests();
+        await fetchLeaveRequests(true); // Force refresh untuk mendapatkan data terbaru
         setShowDetailModal(false);
       } else {
         setNotification({ show: true, type: 'error', message: `Gagal menyetujui: ${data.message}` });
@@ -156,7 +170,7 @@ export default function LeaveRequestPage() {
 
       if (data.success) {
         setNotification({ show: true, type: 'success', message: 'Pengajuan izin ditolak' });
-        await fetchLeaveRequests();
+        await fetchLeaveRequests(true); // Force refresh untuk mendapatkan data terbaru
         setShowDetailModal(false);
       } else {
         setNotification({ show: true, type: 'error', message: `Gagal menolak: ${data.message}` });
@@ -215,23 +229,80 @@ export default function LeaveRequestPage() {
     }
   };
 
-  const filteredRequests = leaveRequests.filter(req => 
-    activeFilter === 'all' ? true : req.status === activeFilter
-  );
+  // Memoize filtered requests untuk menghindari re-filtering yang tidak perlu
+  const filteredRequests = useMemo(() => {
+    return leaveRequests.filter(req => 
+      activeFilter === 'all' ? true : req.status === activeFilter
+    );
+  }, [leaveRequests, activeFilter]);
 
-  const stats = {
-    total: leaveRequests.length,
-    pending: leaveRequests.filter(r => r.status === 'pending').length,
-    approved: leaveRequests.filter(r => r.status === 'approved').length,
-    rejected: leaveRequests.filter(r => r.status === 'rejected').length,
-  };
+  // Memoize stats calculation untuk menghindari re-calculation yang tidak perlu
+  const stats = useMemo(() => {
+    return {
+      total: leaveRequests.length,
+      pending: leaveRequests.filter(r => r.status === 'pending').length,
+      approved: leaveRequests.filter(r => r.status === 'approved').length,
+      rejected: leaveRequests.filter(r => r.status === 'rejected').length,
+    };
+  }, [leaveRequests]);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600 font-medium">Memuat data pengajuan izin...</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        <AdminSidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
+
+        <div className="lg:ml-64 min-h-screen">
+          {/* Header */}
+          <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-slate-200 shadow-sm">
+            <div className="px-4 sm:px-6 lg:px-8 py-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                  <SidebarToggleButton onClick={() => setIsSidebarOpen(true)} />
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0"></div>
+                    <div className="flex flex-col min-w-0">
+                      <div className="h-5 bg-slate-200 rounded w-40 animate-pulse"></div>
+                      <div className="h-4 bg-slate-200 rounded w-32 mt-1 animate-pulse"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          {/* Main Content */}
+          <main className="p-4 sm:p-6 lg:p-8">
+            <div className="max-w-7xl mx-auto">
+              {/* Stats Cards Skeleton */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 animate-pulse">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-10 h-10 bg-slate-200 rounded-lg"></div>
+                      <div className="flex-1 space-y-2">
+                        <div className="h-3 bg-slate-200 rounded w-16"></div>
+                        <div className="h-6 bg-slate-300 rounded w-12"></div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Filter Tabs Skeleton */}
+              <div className="bg-white rounded-xl sm:rounded-2xl p-2 shadow-sm border border-slate-200 mb-6">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="h-10 bg-slate-200 rounded-lg animate-pulse"></div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Leave Request List Skeleton */}
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
+                <SkeletonCard variant="leave" count={6} />
+              </div>
+            </div>
+          </main>
         </div>
       </div>
     );
@@ -402,11 +473,16 @@ export default function LeaveRequestPage() {
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-2.5 flex-1 min-w-0">
                         {request.avatar_url ? (
-                          <img 
-                            src={request.avatar_url} 
-                            alt={request.employee_name}
-                            className="w-12 h-12 sm:w-13 sm:h-13 rounded-lg object-cover border-2 border-white/30 shadow-lg flex-shrink-0"
-                          />
+                          <div className="relative w-12 h-12 sm:w-13 sm:h-13 rounded-lg border-2 border-white/30 shadow-lg flex-shrink-0 overflow-hidden">
+                            <Image 
+                              src={request.avatar_url} 
+                              alt={request.employee_name}
+                              fill
+                              className="object-cover"
+                              sizes="(max-width: 640px) 48px, 52px"
+                              unoptimized
+                            />
+                          </div>
                         ) : (
                           <div className="w-12 h-12 sm:w-13 sm:h-13 rounded-lg bg-white/20 backdrop-blur-sm border-2 border-white/30 flex items-center justify-center text-white font-bold text-base sm:text-lg shadow-lg flex-shrink-0">
                             {request.employee_name.substring(0, 2).toUpperCase()}
@@ -518,11 +594,16 @@ export default function LeaveRequestPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   {selectedRequest.avatar_url ? (
-                    <img 
-                      src={selectedRequest.avatar_url} 
-                      alt={selectedRequest.employee_name}
-                      className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl object-cover border-2 border-white/40 shadow-lg flex-shrink-0"
-                    />
+                    <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-xl border-2 border-white/40 shadow-lg flex-shrink-0 overflow-hidden">
+                      <Image 
+                        src={selectedRequest.avatar_url} 
+                        alt={selectedRequest.employee_name}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 640px) 48px, 56px"
+                        unoptimized
+                      />
+                    </div>
                   ) : (
                     <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-white/20 backdrop-blur-sm border-2 border-white/40 flex items-center justify-center text-white font-bold text-base sm:text-lg shadow-lg flex-shrink-0">
                       {selectedRequest.employee_name.substring(0, 2).toUpperCase()}

@@ -1,13 +1,21 @@
 'use client';
 
-import { useEffect, useState, useRef, useMemo } from 'react';
+import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import dynamic from 'next/dynamic';
 import AdminSidebar, { SidebarToggleButton } from '@/components/AdminSidebar';
-import DatePicker from 'react-datepicker';
+import { useDebounce } from '@/lib/utils/useDebounce';
+import SkeletonCard from '@/components/SkeletonCard';
+// Import CSS untuk DatePicker (akan di-bundle oleh Next.js)
 import 'react-datepicker/dist/react-datepicker.css';
-import * as XLSX from 'xlsx';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+
+// Lazy load DatePicker untuk mengurangi initial bundle size
+// @ts-ignore - Type issue with react-datepicker dynamic import
+const DatePicker = dynamic(() => import('react-datepicker').then(mod => mod.default), { 
+  ssr: false,
+  loading: () => <div className="h-10 bg-slate-200 rounded-lg animate-pulse"></div>
+});
 
 // Extend jsPDF type to include autoTable
 declare module 'jspdf' {
@@ -48,6 +56,8 @@ export default function AttendancePage() {
   
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
+  // Debounced search query untuk optimasi performa
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
   
   // Download dropdown state
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
@@ -498,12 +508,15 @@ export default function AttendancePage() {
     }
   };
 
-  // Excel export function
-  const handleExportExcel = () => {
+  // Excel export function - Lazy load XLSX saat akan digunakan
+  const handleExportExcel = async () => {
     if (filteredAttendance.length === 0) {
       alert('Tidak ada data untuk di-export');
       return;
     }
+
+    // Lazy load XLSX hanya saat akan export
+    const XLSX = await import('xlsx');
 
     // Prepare data for Excel (use filtered data dengan 11 kolom)
     const excelData = filteredAttendance.map((record, index) => {
@@ -597,12 +610,18 @@ export default function AttendancePage() {
     setShowDownloadMenu(false);
   };
 
-  // PDF export function
-  const handleExportPDF = () => {
+  // PDF export function - Lazy load jsPDF dan autoTable saat akan digunakan
+  const handleExportPDF = async () => {
     if (filteredAttendance.length === 0) {
       alert('Tidak ada data untuk di-export');
       return;
     }
+
+    // Lazy load jsPDF dan autoTable hanya saat akan export
+    const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+      import('jspdf'),
+      import('jspdf-autotable')
+    ]);
 
     // Create new PDF document
     const doc = new jsPDF('landscape', 'mm', 'a4');
@@ -749,22 +768,26 @@ export default function AttendancePage() {
     setShowDownloadMenu(false);
   };
 
-  const handleViewDetail = (record: AttendanceRecord) => {
+  // Memoize handler untuk menghindari re-creation pada setiap render
+  const handleViewDetail = useCallback((record: AttendanceRecord) => {
     setSelectedRecord(record);
     setShowDetailModal(true);
-  };
+  }, []);
 
-  // Filter attendance by search query
-  const filteredAttendance = attendance.filter((record) => {
-    if (!searchQuery.trim()) return true; // Show all if no search query
-    
-    const fullName = record.employees?.full_name?.toLowerCase() || '';
-    const employeeCode = record.employees?.employee_code?.toLowerCase() || '';
-    const query = searchQuery.toLowerCase().trim();
-    
-    // Search by name or employee code (NIK)
-    return fullName.includes(query) || employeeCode.includes(query);
-  });
+  // Filter attendance by search query (menggunakan debounced untuk optimasi)
+  // Memoize filtered list untuk menghindari re-filtering yang tidak perlu
+  const filteredAttendance = useMemo(() => {
+    return attendance.filter((record) => {
+      if (!debouncedSearchQuery.trim()) return true; // Show all if no search query
+      
+      const fullName = record.employees?.full_name?.toLowerCase() || '';
+      const employeeCode = record.employees?.employee_code?.toLowerCase() || '';
+      const query = debouncedSearchQuery.toLowerCase().trim();
+      
+      // Search by name or employee code (NIK)
+      return fullName.includes(query) || employeeCode.includes(query);
+    });
+  }, [attendance, debouncedSearchQuery]);
 
   // Calculate stats dengan klasifikasi status detail
   // Gunakan useMemo untuk memastikan calculation hanya dilakukan setelah data ready
@@ -856,10 +879,67 @@ export default function AttendancePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600 font-medium">Memuat data absensi...</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        <AdminSidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
+
+        <div className="lg:ml-64 min-h-screen">
+          {/* Header */}
+          <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-slate-200 shadow-sm">
+            <div className="px-4 sm:px-6 lg:px-8 py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3 flex-1 lg:flex-none">
+                  <SidebarToggleButton onClick={() => setIsSidebarOpen(true)} />
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center"></div>
+                    <div className="flex flex-col min-w-0">
+                      <div className="h-6 bg-slate-200 rounded w-40 animate-pulse"></div>
+                      <div className="h-4 bg-slate-200 rounded w-32 mt-1 animate-pulse"></div>
+                    </div>
+                  </div>
+                </div>
+                <div className="h-10 bg-slate-200 rounded-lg w-24 animate-pulse"></div>
+              </div>
+            </div>
+          </header>
+
+          {/* Main Content */}
+          <main className="p-4 sm:p-6 lg:p-8">
+            <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+              {/* Stats Summary Skeleton */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 animate-pulse">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-10 h-10 bg-slate-200 rounded-lg"></div>
+                      <div className="flex-1 space-y-2">
+                        <div className="h-3 bg-slate-200 rounded w-20"></div>
+                        <div className="h-6 bg-slate-300 rounded w-12"></div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Filter Tabs Skeleton */}
+              <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-sm border border-slate-200">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="h-10 bg-slate-200 rounded-lg animate-pulse"></div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Search Skeleton */}
+              <div className="bg-white rounded-xl sm:rounded-2xl p-4 shadow-sm border border-slate-200">
+                <div className="h-10 bg-slate-200 rounded-lg animate-pulse"></div>
+              </div>
+
+              {/* Attendance List Skeleton */}
+              <div className="space-y-3">
+                <SkeletonCard variant="attendance" count={5} />
+              </div>
+            </div>
+          </main>
         </div>
       </div>
     );
@@ -1205,11 +1285,16 @@ export default function AttendancePage() {
                       {/* Employee Info with Status Badge - MOBILE & DESKTOP */}
                       <div className="flex items-start sm:items-center gap-3">
                         {record.employees.avatar_url ? (
-                          <img 
-                            src={record.employees.avatar_url} 
-                            alt={record.employees.full_name}
-                            className="w-11 h-11 sm:w-12 sm:h-12 rounded-lg object-cover shadow-sm border-2 border-white flex-shrink-0"
-                          />
+                          <div className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-lg shadow-sm border-2 border-white flex-shrink-0 overflow-hidden">
+                            <Image 
+                              src={record.employees.avatar_url} 
+                              alt={record.employees.full_name}
+                              fill
+                              className="object-cover"
+                              sizes="(max-width: 640px) 44px, 48px"
+                              unoptimized
+                            />
+                          </div>
                         ) : (
                           <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm sm:text-base shadow-sm flex-shrink-0">
                             {record.employees.full_name.substring(0, 2).toUpperCase()}
@@ -1290,11 +1375,16 @@ export default function AttendancePage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   {selectedRecord.employees.avatar_url ? (
-                    <img 
-                      src={selectedRecord.employees.avatar_url} 
-                      alt={selectedRecord.employees.full_name}
-                      className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl object-cover border-2 border-white/40 shadow-lg flex-shrink-0"
-                    />
+                    <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-xl border-2 border-white/40 shadow-lg flex-shrink-0 overflow-hidden">
+                      <Image 
+                        src={selectedRecord.employees.avatar_url} 
+                        alt={selectedRecord.employees.full_name}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 640px) 48px, 56px"
+                        unoptimized
+                      />
+                    </div>
                   ) : (
                     <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-white/20 backdrop-blur-sm border-2 border-white/40 flex items-center justify-center text-white font-bold text-lg shadow-lg flex-shrink-0">
                       {selectedRecord.employees.full_name.substring(0, 2).toUpperCase()}

@@ -21,6 +21,13 @@ const nextConfig: NextConfig = {
         encoding: false,
       };
     }
+    // Fix for node-fetch encoding issue
+    if (isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        encoding: false,
+      };
+    }
     return config;
   },
 }

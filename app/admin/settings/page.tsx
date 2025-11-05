@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import AdminSidebar, { SidebarToggleButton } from '@/components/AdminSidebar';
 import SuccessNotification from '@/components/SuccessNotification';
 import ErrorNotification from '@/components/ErrorNotification';
+import SkeletonCard from '@/components/SkeletonCard';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -116,10 +117,84 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600 font-medium">Memuat pengaturan...</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        <AdminSidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
+
+        <div className="lg:ml-64 min-h-screen">
+          {/* Header */}
+          <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-slate-200 shadow-sm">
+            <div className="px-4 sm:px-6 lg:px-8 py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3 flex-1 lg:flex-none">
+                  <SidebarToggleButton onClick={() => setIsSidebarOpen(true)} />
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center"></div>
+                    <div className="flex flex-col min-w-0">
+                      <div className="h-6 bg-slate-200 rounded w-32 animate-pulse"></div>
+                      <div className="h-4 bg-slate-200 rounded w-32 mt-1 animate-pulse"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          {/* Main Content */}
+          <main className="p-4 sm:p-6 lg:p-8">
+            <div className="max-w-4xl mx-auto">
+              {/* Info Card Skeleton */}
+              <div className="bg-blue-50 border border-blue-200 rounded-xl sm:rounded-2xl p-4 sm:p-5 mb-6 animate-pulse">
+                <div className="space-y-2">
+                  <div className="h-4 bg-slate-200 rounded w-48"></div>
+                  <div className="h-3 bg-slate-200 rounded w-full"></div>
+                  <div className="h-3 bg-slate-200 rounded w-5/6"></div>
+                  <div className="h-3 bg-slate-200 rounded w-4/5"></div>
+                </div>
+              </div>
+
+              {/* Settings Form Skeleton */}
+              <div className="bg-white rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200">
+                <div className="h-7 bg-slate-200 rounded w-48 mb-6 animate-pulse"></div>
+                
+                <div className="space-y-6">
+                  {/* Setting 1 Skeleton */}
+                  <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-5 sm:p-6 border border-slate-200 animate-pulse">
+                    <div className="flex items-start gap-4 mb-4">
+                      <div className="w-12 h-12 bg-slate-200 rounded-lg"></div>
+                      <div className="flex-1 space-y-2">
+                        <div className="h-5 bg-slate-200 rounded w-48"></div>
+                        <div className="h-4 bg-slate-200 rounded w-64"></div>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="h-10 bg-slate-200 rounded-lg"></div>
+                      <div className="h-2 bg-slate-200 rounded w-full"></div>
+                    </div>
+                  </div>
+
+                  {/* Setting 2 Skeleton */}
+                  <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-5 sm:p-6 border border-slate-200 animate-pulse">
+                    <div className="flex items-start gap-4 mb-4">
+                      <div className="w-12 h-12 bg-slate-200 rounded-lg"></div>
+                      <div className="flex-1 space-y-2">
+                        <div className="h-5 bg-slate-200 rounded w-48"></div>
+                        <div className="h-4 bg-slate-200 rounded w-64"></div>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="h-10 bg-slate-200 rounded-lg"></div>
+                      <div className="h-2 bg-slate-200 rounded w-full"></div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Save Button Skeleton */}
+                <div className="mt-6 flex justify-end">
+                  <div className="h-10 bg-slate-200 rounded-lg w-32 animate-pulse"></div>
+                </div>
+              </div>
+            </div>
+          </main>
         </div>
       </div>
     );

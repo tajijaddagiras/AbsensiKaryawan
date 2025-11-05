@@ -1,11 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import AdminSidebar, { SidebarToggleButton } from '@/components/AdminSidebar';
 import SuccessNotification from '@/components/SuccessNotification';
 import ErrorNotification from '@/components/ErrorNotification';
 import ConfirmationModal from '@/components/ConfirmationModal';
+import SkeletonCard from '@/components/SkeletonCard';
+import { cachedFetch } from '@/lib/utils/apiCache';
 
 interface Employee {
   id: string;
@@ -75,16 +78,22 @@ export default function EmployeesPage() {
     }
   };
 
-  const fetchEmployees = async () => {
+  const fetchEmployees = async (forceRefresh: boolean = false) => {
     try {
-      const timestamp = new Date().getTime();
-      const response = await fetch(`/api/employees?showInactive=true&_t=${timestamp}`, {
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache',
-        }
-      });
-      const data = await response.json();
+      // Gunakan cached fetch dengan TTL 30 detik (30000ms)
+      // Force refresh saat add/edit/delete untuk mendapatkan data terbaru
+      const data = await cachedFetch(
+        `/api/employees?showInactive=true`,
+        {
+          method: 'GET',
+          headers: {
+            'Cache-Control': 'no-cache',
+          }
+        },
+        30000, // TTL 30 detik
+        forceRefresh
+      );
+      
       if (data.success) {
         console.log('Fetched employees:', data.data.length, 'total');
         console.log('Active:', data.data.filter((e: Employee) => e.is_active).length);
@@ -159,7 +168,7 @@ export default function EmployeesPage() {
           department: '',
           position: '',
         });
-        fetchEmployees();
+        fetchEmployees(true); // Force refresh untuk mendapatkan data terbaru
       } else {
         setNotification({ show: true, type: 'error', message: data.error || 'Gagal menambah karyawan' });
       }
@@ -213,7 +222,7 @@ export default function EmployeesPage() {
           department: '',
           position: '',
         });
-        fetchEmployees();
+        fetchEmployees(true); // Force refresh untuk mendapatkan data terbaru
       } else {
         setNotification({ show: true, type: 'error', message: data.error || 'Gagal update karyawan' });
       }
@@ -243,7 +252,7 @@ export default function EmployeesPage() {
       const data = await response.json();
       if (data.success) {
         setNotification({ show: true, type: 'success', message: `Karyawan berhasil di${actionText}!` });
-        fetchEmployees();
+        fetchEmployees(true); // Force refresh untuk mendapatkan data terbaru
       } else {
         setNotification({ show: true, type: 'error', message: data.error || `Gagal ${actionText} karyawan` });
       }
@@ -254,14 +263,15 @@ export default function EmployeesPage() {
   };
 
 
-  const handleDeleteClick = (id: string) => {
+  // Memoize handler untuk menghindari re-creation pada setiap render
+  const handleDeleteClick = useCallback((id: string) => {
     const employee = employees.find(emp => emp.id === id);
     if (!employee) {
       setNotification({ show: true, type: 'error', message: 'Karyawan tidak ditemukan' });
       return;
     }
     setConfirmDelete({ show: true, employee });
-  };
+  }, [employees]);
 
   const handleDeleteConfirm = async () => {
     const employee = confirmDelete.employee;
@@ -281,7 +291,7 @@ export default function EmployeesPage() {
       if (data.success) {
         setEmployees(prevEmployees => prevEmployees.filter(emp => emp.id !== employee.id));
         setNotification({ show: true, type: 'success', message: 'Karyawan berhasil dihapus permanen!' });
-        fetchEmployees();
+        fetchEmployees(true); // Force refresh untuk mendapatkan data terbaru
       } else {
         setNotification({ show: true, type: 'error', message: data.error || 'Gagal menghapus karyawan' });
       }
@@ -295,10 +305,53 @@ export default function EmployeesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600 font-medium">Memuat data karyawan...</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        <AdminSidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
+
+        <div className="lg:ml-64 min-h-screen">
+          {/* Header */}
+          <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-slate-200 shadow-sm">
+            <div className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                  <SidebarToggleButton onClick={() => setIsSidebarOpen(true)} />
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0"></div>
+                    <div className="flex flex-col min-w-0">
+                      <div className="h-5 bg-slate-200 rounded w-32 animate-pulse"></div>
+                      <div className="h-4 bg-slate-200 rounded w-24 mt-1 animate-pulse"></div>
+                    </div>
+                  </div>
+                </div>
+                <div className="h-9 bg-slate-200 rounded-lg w-20 animate-pulse"></div>
+              </div>
+            </div>
+          </header>
+
+          {/* Main Content */}
+          <main className="p-3 sm:p-4 md:p-6 lg:p-8">
+            <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+              {/* Stats Summary Skeleton */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 animate-pulse">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-slate-200 rounded-lg"></div>
+                      <div className="flex-1 space-y-2">
+                        <div className="h-3 bg-slate-200 rounded w-16"></div>
+                        <div className="h-6 bg-slate-300 rounded w-12"></div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Employee List Skeleton */}
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
+                <SkeletonCard variant="employee" count={6} />
+              </div>
+            </div>
+          </main>
         </div>
       </div>
     );
@@ -351,69 +404,76 @@ export default function EmployeesPage() {
         <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
 
         {/* Stats Summary */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-          {/* Total Karyawan */}
-          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 hover:shadow-lg transition-all group">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              </div>
-              <div className="flex-1">
-                <p className="text-xs text-slate-500 font-medium">Total</p>
-                <p className="text-2xl sm:text-3xl font-bold text-slate-900">{employees.length}</p>
-              </div>
-            </div>
-          </div>
+        {/* Memoize stats calculation untuk menghindari re-calculation yang tidak perlu */}
+        {useMemo(() => {
+          const activeCount = employees.filter(e => e.is_active).length;
+          const inactiveCount = employees.filter(e => !e.is_active).length;
+          const activePercentage = employees.length > 0 ? Math.round((activeCount / employees.length) * 100) : 0;
 
-          {/* Aktif */}
-          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 hover:shadow-lg transition-all group">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+          return (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+              {/* Total Karyawan */}
+              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 hover:shadow-lg transition-all group">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs text-slate-500 font-medium">Total</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-slate-900">{employees.length}</p>
+                  </div>
+                </div>
               </div>
-              <div className="flex-1">
-                <p className="text-xs text-slate-500 font-medium">Aktif</p>
-                <p className="text-2xl sm:text-3xl font-bold text-green-600">{employees.filter(e => e.is_active).length}</p>
-              </div>
-            </div>
-          </div>
 
-          {/* Non-Aktif */}
-          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 hover:shadow-lg transition-all group">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-red-500 to-rose-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+              {/* Aktif */}
+              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 hover:shadow-lg transition-all group">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs text-slate-500 font-medium">Aktif</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-green-600">{activeCount}</p>
+                  </div>
+                </div>
               </div>
-                <div className="flex-1">
-                <p className="text-xs text-slate-500 font-medium">Non-Aktif</p>
-                <p className="text-2xl sm:text-3xl font-bold text-red-600">{employees.filter(e => !e.is_active).length}</p>
-              </div>
+
+              {/* Non-Aktif */}
+              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 hover:shadow-lg transition-all group">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-red-500 to-rose-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs text-slate-500 font-medium">Non-Aktif</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-red-600">{inactiveCount}</p>
+                  </div>
                 </div>
               </div>
               
-          {/* Persentase Aktif */}
-          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 hover:shadow-lg transition-all group">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              </div>
-              <div className="flex-1">
-                <p className="text-xs text-slate-500 font-medium">% Aktif</p>
-                <p className="text-2xl sm:text-3xl font-bold text-indigo-600">
-                  {employees.length > 0 ? Math.round((employees.filter(e => e.is_active).length / employees.length) * 100) : 0}%
-                </p>
+              {/* Persentase Aktif */}
+              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 hover:shadow-lg transition-all group">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs text-slate-500 font-medium">% Aktif</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-indigo-600">{activePercentage}%</p>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-              </div>
+          );
+        }, [employees])}
 
         {/* Employee List - Grid Layout */}
         {employees.length === 0 ? (
@@ -444,11 +504,16 @@ export default function EmployeesPage() {
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2.5 flex-1 min-w-0">
                       {employee.avatar_url ? (
-                        <img 
-                          src={employee.avatar_url} 
-                          alt={employee.full_name}
-                          className="w-12 h-12 sm:w-13 sm:h-13 rounded-lg object-cover border-2 border-white/30 shadow-lg flex-shrink-0"
-                        />
+                        <div className="relative w-12 h-12 sm:w-13 sm:h-13 rounded-lg border-2 border-white/30 shadow-lg flex-shrink-0 overflow-hidden">
+                          <Image 
+                            src={employee.avatar_url} 
+                            alt={employee.full_name}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 640px) 48px, 52px"
+                            unoptimized
+                          />
+                        </div>
                       ) : (
                         <div className="w-12 h-12 sm:w-13 sm:h-13 rounded-lg bg-white/20 backdrop-blur-sm border-2 border-white/30 flex items-center justify-center text-white font-bold text-base sm:text-lg shadow-lg flex-shrink-0">
                           {employee.full_name.substring(0, 2).toUpperCase()}

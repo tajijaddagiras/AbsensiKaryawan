@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import UserSidebar, { SidebarToggleButton } from '@/components/UserSidebar';
 import dynamic from 'next/dynamic';
 
@@ -106,10 +107,40 @@ export default function FaceTrainingPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-slate-600">Memuat data...</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+        <UserSidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
+
+        <div className="lg:pl-64 flex flex-col min-h-screen">
+          {/* Header */}
+          <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-slate-200 shadow-sm">
+            <div className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                  <SidebarToggleButton onClick={() => setIsSidebarOpen(true)} />
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0"></div>
+                  <div className="flex flex-col min-w-0">
+                    <div className="h-6 bg-slate-200 rounded w-40 animate-pulse"></div>
+                    <div className="h-4 bg-slate-200 rounded w-32 mt-1 animate-pulse"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          {/* Main Content */}
+          <div className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
+            {/* Title Card Skeleton */}
+            <div className="bg-white rounded-xl p-6 mb-6 shadow-sm border border-slate-200 animate-pulse">
+              <div className="h-8 bg-slate-200 rounded w-64 mb-2"></div>
+              <div className="h-4 bg-slate-200 rounded w-96"></div>
+            </div>
+
+            {/* Camera Card Skeleton */}
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 animate-pulse">
+              <div className="h-64 bg-slate-200 rounded-lg mb-4"></div>
+              <div className="h-10 bg-slate-200 rounded w-32 mx-auto"></div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -295,11 +326,16 @@ export default function FaceTrainingPage() {
                       {/* Employee Photo */}
                       <div className="absolute inset-2 rounded-full overflow-hidden bg-slate-100">
                         {employee?.avatar_url ? (
-                          <img 
-                            src={employee.avatar_url} 
-                            alt={employee.full_name}
-                            className="w-full h-full object-cover"
-                          />
+                          <div className="relative w-full h-full">
+                            <Image 
+                              src={employee.avatar_url} 
+                              alt={employee.full_name}
+                              fill
+                              className="object-cover"
+                              sizes="200px"
+                              unoptimized
+                            />
+                          </div>
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-green-100 to-emerald-100">
                             <svg className="w-20 h-20 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
