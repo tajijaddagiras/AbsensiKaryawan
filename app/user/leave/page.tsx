@@ -691,50 +691,90 @@ export default function UserLeavePage() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-3.5 sm:space-y-4">
               {/* Type */}
-              <div>
-                <label className="block text-slate-700 mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold">
+              <div className="space-y-1.5 sm:space-y-2">
+                <label className="block text-slate-700 text-xs sm:text-sm font-semibold">
                   Jenis Izin
                 </label>
-                <select
-                  value={formData.leave_type}
-                  onChange={(e) => setFormData({ ...formData, leave_type: e.target.value as any })}
-                  className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all"
-                  required
-                >
-                  <option value="sick">🤒 Sakit</option>
-                  <option value="annual">🏖️ Cuti Tahunan</option>
-                  <option value="personal">📝 Izin Pribadi</option>
-                  <option value="emergency">🚨 Darurat</option>
-                </select>
+                <div className="relative">
+                  <select
+                    value={formData.leave_type}
+                    onChange={(e) => setFormData({ ...formData, leave_type: e.target.value as any })}
+                    className="w-full bg-white border border-slate-300 rounded-lg shadow-sm px-3 sm:px-4 py-2.5 sm:py-3 pr-11 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/40 transition-all appearance-none min-h-[3rem]"
+                    required
+                  >
+                    <option value="sick">🤒 Sakit</option>
+                    <option value="annual">🏖️ Cuti Tahunan</option>
+                    <option value="personal">📝 Izin Pribadi</option>
+                    <option value="emergency">🚨 Darurat</option>
+                  </select>
+                  <svg
+                    className="pointer-events-none absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </div>
 
               {/* Dates */}
-              <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                <div>
-                  <label className="block text-slate-700 mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div className="space-y-1.5 sm:space-y-2">
+                  <label className="block text-slate-700 text-xs sm:text-sm font-semibold">
                     Tanggal Mulai
                   </label>
-                  <input
-                    type="date"
-                    value={formData.start_date}
-                    onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                    className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all"
-                    required
-                  />
+                  <div className="relative">
+                    <input
+                      type="date"
+                      value={formData.start_date}
+                      onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                      className="w-full bg-white border border-slate-300 rounded-lg shadow-sm px-3 sm:px-4 py-2.5 sm:py-3 pr-12 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/40 transition-all min-h-[3rem]"
+                      required
+                    />
+                    <svg
+                      className="pointer-events-none absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-purple-500/70"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 7V5m8 2V5m-9 8h10m-7 4h4m-9 4h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-slate-700 mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold">
+                <div className="space-y-1.5 sm:space-y-2">
+                  <label className="block text-slate-700 text-xs sm:text-sm font-semibold">
                     Tanggal Selesai
                   </label>
-                  <input
-                    type="date"
-                    value={formData.end_date}
-                    onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-                    className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all"
-                    required
-                  />
+                  <div className="relative">
+                    <input
+                      type="date"
+                      value={formData.end_date}
+                      onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                      className="w-full bg-white border border-slate-300 rounded-lg shadow-sm px-3 sm:px-4 py-2.5 sm:py-3 pr-12 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/40 transition-all min-h-[3rem]"
+                      required
+                    />
+                    <svg
+                      className="pointer-events-none absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-purple-500/70"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 7V5m8 2V5m-9 8h10m-7 4h4m-9 4h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </div>
                 </div>
               </div>
 
@@ -748,14 +788,14 @@ export default function UserLeavePage() {
               )}
 
               {/* Reason */}
-              <div>
-                <label className="block text-slate-700 mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold">
+              <div className="space-y-1.5 sm:space-y-2">
+                <label className="block text-slate-700 text-xs sm:text-sm font-semibold">
                   Alasan
                 </label>
                 <textarea
                   value={formData.reason}
                   onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-                  className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all resize-none"
+                  className="w-full bg-white border border-slate-300 rounded-lg shadow-sm px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/40 transition-all resize-none min-h-[140px]"
                   rows={4}
                   placeholder="Jelaskan alasan pengajuan izin Anda..."
                   required

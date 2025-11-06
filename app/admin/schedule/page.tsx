@@ -893,19 +893,22 @@ export default function SchedulePolicyPage() {
             </div>
 
             {/* Modal Body */}
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              const formData = new FormData(e.currentTarget);
-              handleAddHoliday({
-                name: formData.get('name') as string,
-                date: formData.get('date') as string,
-                type: formData.get('type') as string,
-                description: formData.get('description') as string,
-              });
-            }} className="p-6 space-y-5">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget);
+                handleAddHoliday({
+                  name: formData.get('name') as string,
+                  date: formData.get('date') as string,
+                  type: formData.get('type') as string,
+                  description: formData.get('description') as string,
+                });
+              }}
+              className="p-5 sm:p-6 space-y-4 sm:space-y-5"
+            >
               {/* Name */}
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
+              <div className="space-y-1.5 sm:space-y-2">
+                <label className="block text-xs sm:text-sm font-semibold text-slate-700">
                   Nama Hari Libur <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -913,63 +916,88 @@ export default function SchedulePolicyPage() {
                   name="name"
                   required
                   placeholder="e.g., Tahun Baru 2026"
-                  className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/50 transition-all"
+                  className="w-full bg-white border border-slate-300 rounded-lg shadow-sm px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/40 transition-all min-h-[3rem]"
                 />
               </div>
 
               {/* Date */}
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
+              <div className="space-y-1.5 sm:space-y-2">
+                <label className="block text-xs sm:text-sm font-semibold text-slate-700">
                   Tanggal <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="date"
-                  name="date"
-                  required
-                  className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/50 transition-all"
-                />
+                <div className="relative">
+                  <input
+                    type="date"
+                    name="date"
+                    required
+                    className="w-full bg-white border border-slate-300 rounded-lg shadow-sm px-3 sm:px-4 py-2.5 sm:py-3 pr-12 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/40 transition-all min-h-[3rem]"
+                  />
+                  <svg
+                    className="pointer-events-none absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-green-500/70"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7V5m8 2V5m-9 8h10m-7 4h4m-9 4h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                </div>
               </div>
 
               {/* Type */}
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
+              <div className="space-y-1.5 sm:space-y-2">
+                <label className="block text-xs sm:text-sm font-semibold text-slate-700">
                   Tipe <span className="text-red-500">*</span>
                 </label>
-                <select
-                  name="type"
-                  required
-                  className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/50 transition-all"
-                >
-                  <option value="national">Libur Nasional</option>
-                  <option value="company">Libur Perusahaan</option>
-                </select>
+                <div className="relative">
+                  <select
+                    name="type"
+                    required
+                    className="w-full bg-white border border-slate-300 rounded-lg shadow-sm px-3 sm:px-4 py-2.5 sm:py-3 pr-12 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/40 transition-all min-h-[3rem] appearance-none"
+                  >
+                    <option value="national">Libur Nasional</option>
+                    <option value="company">Libur Perusahaan</option>
+                  </select>
+                  <svg
+                    className="pointer-events-none absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </div>
 
               {/* Description */}
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
+              <div className="space-y-1.5 sm:space-y-2">
+                <label className="block text-xs sm:text-sm font-semibold text-slate-700">
                   Deskripsi (Optional)
                 </label>
                 <textarea
                   name="description"
                   rows={3}
                   placeholder="e.g., Hari libur nasional..."
-                  className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/50 transition-all resize-none"
+                  className="w-full bg-white border border-slate-300 rounded-lg shadow-sm px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/40 transition-all resize-none min-h-[120px]"
                 ></textarea>
               </div>
 
               {/* Actions */}
-              <div className="flex gap-3 pt-2">
+              <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowAddHolidayModal(false)}
-                  className="flex-1 px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold transition-all"
+                  className="w-full sm:flex-1 px-4 py-2.5 sm:py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg transition-all"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg font-semibold transition-all shadow-md hover:shadow-lg"
+                  className="w-full sm:flex-1 px-4 py-2.5 sm:py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold rounded-lg transition-all shadow-md hover:shadow-lg"
                 >
                   Simpan
                 </button>
@@ -1007,20 +1035,23 @@ export default function SchedulePolicyPage() {
             </div>
 
             {/* Modal Body */}
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              const formData = new FormData(e.currentTarget);
-              handleEditHoliday({
-                id: editingHoliday.id,
-                name: formData.get('name') as string,
-                date: formData.get('date') as string,
-                type: formData.get('type') as string,
-                description: formData.get('description') as string,
-              });
-            }} className="p-6 space-y-5">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget);
+                handleEditHoliday({
+                  id: editingHoliday.id,
+                  name: formData.get('name') as string,
+                  date: formData.get('date') as string,
+                  type: formData.get('type') as string,
+                  description: formData.get('description') as string,
+                });
+              }}
+              className="p-5 sm:p-6 space-y-4 sm:space-y-5"
+            >
               {/* Name */}
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
+              <div className="space-y-1.5 sm:space-y-2">
+                <label className="block text-xs sm:text-sm font-semibold text-slate-700">
                   Nama Hari Libur <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -1028,68 +1059,93 @@ export default function SchedulePolicyPage() {
                   name="name"
                   required
                   defaultValue={editingHoliday.name}
-                  className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all"
+                  className="w-full bg-white border border-slate-300 rounded-lg shadow-sm px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/40 transition-all min-h-[3rem]"
                 />
               </div>
 
               {/* Date */}
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
+              <div className="space-y-1.5 sm:space-y-2">
+                <label className="block text-xs sm:text-sm font-semibold text-slate-700">
                   Tanggal <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="date"
-                  name="date"
-                  required
-                  defaultValue={editingHoliday.date}
-                  className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all"
-                />
+                <div className="relative">
+                  <input
+                    type="date"
+                    name="date"
+                    required
+                    defaultValue={editingHoliday.date}
+                    className="w-full bg-white border border-slate-300 rounded-lg shadow-sm px-3 sm:px-4 py-2.5 sm:py-3 pr-12 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/40 transition-all min-h-[3rem]"
+                  />
+                  <svg
+                    className="pointer-events-none absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-500/70"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7V5m8 2V5m-9 8h10m-7 4h4m-9 4h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                </div>
               </div>
 
               {/* Type */}
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
+              <div className="space-y-1.5 sm:space-y-2">
+                <label className="block text-xs sm:text-sm font-semibold text-slate-700">
                   Tipe <span className="text-red-500">*</span>
                 </label>
-                <select
-                  name="type"
-                  required
-                  defaultValue={editingHoliday.type}
-                  className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all"
-                >
-                  <option value="national">Libur Nasional</option>
-                  <option value="company">Libur Perusahaan</option>
-                </select>
+                <div className="relative">
+                  <select
+                    name="type"
+                    required
+                    defaultValue={editingHoliday.type}
+                    className="w-full bg-white border border-slate-300 rounded-lg shadow-sm px-3 sm:px-4 py-2.5 sm:py-3 pr-12 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/40 transition-all min-h-[3rem] appearance-none"
+                  >
+                    <option value="national">Libur Nasional</option>
+                    <option value="company">Libur Perusahaan</option>
+                  </select>
+                  <svg
+                    className="pointer-events-none absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </div>
 
               {/* Description */}
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
+              <div className="space-y-1.5 sm:space-y-2">
+                <label className="block text-xs sm:text-sm font-semibold text-slate-700">
                   Deskripsi (Optional)
                 </label>
                 <textarea
                   name="description"
                   rows={3}
                   defaultValue={editingHoliday.description || ''}
-                  className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all resize-none"
+                  className="w-full bg-white border border-slate-300 rounded-lg shadow-sm px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/40 transition-all resize-none min-h-[120px]"
                 ></textarea>
               </div>
 
               {/* Actions */}
-              <div className="flex gap-3 pt-2">
+              <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => {
                     setShowEditHolidayModal(false);
                     setEditingHoliday(null);
                   }}
-                  className="flex-1 px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold transition-all"
+                  className="w-full sm:flex-1 px-4 py-2.5 sm:py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg transition-all"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-lg font-semibold transition-all shadow-md hover:shadow-lg"
+                  className="w-full sm:flex-1 px-4 py-2.5 sm:py-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold rounded-lg transition-all shadow-md hover:shadow-lg"
                 >
                   Update
                 </button>
@@ -1124,18 +1180,21 @@ export default function SchedulePolicyPage() {
             </div>
 
             {/* Modal Body */}
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              const formData = new FormData(e.currentTarget);
-              handleAddPolicy({
-                title: formData.get('title') as string,
-                description: formData.get('description') as string,
-                category: formData.get('category') as string,
-              });
-            }} className="p-6 space-y-5">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget);
+                handleAddPolicy({
+                  title: formData.get('title') as string,
+                  description: formData.get('description') as string,
+                  category: formData.get('category') as string,
+                });
+              }}
+              className="p-5 sm:p-6 space-y-4 sm:space-y-5"
+            >
               {/* Title */}
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
+              <div className="space-y-1.5 sm:space-y-2">
+                <label className="block text-xs sm:text-sm font-semibold text-slate-700">
                   Judul Kebijakan <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -1143,29 +1202,39 @@ export default function SchedulePolicyPage() {
                   name="title"
                   required
                   placeholder="e.g., Aturan Lembur"
-                  className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all"
+                  className="w-full bg-white border border-slate-300 rounded-lg shadow-sm px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/40 transition-all min-h-[3rem]"
                 />
               </div>
 
               {/* Category */}
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
+              <div className="space-y-1.5 sm:space-y-2">
+                <label className="block text-xs sm:text-sm font-semibold text-slate-700">
                   Kategori <span className="text-red-500">*</span>
                 </label>
-                <select
-                  name="category"
-                  required
-                  className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all"
-                >
-                  <option value="attendance">Kehadiran</option>
-                  <option value="leave">Cuti & Izin</option>
-                  <option value="general">Umum</option>
-                </select>
+                <div className="relative">
+                  <select
+                    name="category"
+                    required
+                    className="w-full bg-white border border-slate-300 rounded-lg shadow-sm px-3 sm:px-4 py-2.5 sm:py-3 pr-12 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/40 transition-all min-h-[3rem] appearance-none"
+                  >
+                    <option value="attendance">Kehadiran</option>
+                    <option value="leave">Cuti & Izin</option>
+                    <option value="general">Umum</option>
+                  </select>
+                  <svg
+                    className="pointer-events-none absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </div>
 
               {/* Description */}
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
+              <div className="space-y-1.5 sm:space-y-2">
+                <label className="block text-xs sm:text-sm font-semibold text-slate-700">
                   Deskripsi <span className="text-red-500">*</span>
                 </label>
                 <textarea
@@ -1173,22 +1242,22 @@ export default function SchedulePolicyPage() {
                   required
                   rows={5}
                   placeholder="Jelaskan kebijakan ini secara detail..."
-                  className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all resize-none"
+                  className="w-full bg-white border border-slate-300 rounded-lg shadow-sm px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/40 transition-all resize-none min-h-[140px]"
                 ></textarea>
               </div>
 
               {/* Actions */}
-              <div className="flex gap-3 pt-2">
+              <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowAddPolicyModal(false)}
-                  className="flex-1 px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold transition-all"
+                  className="w-full sm:flex-1 px-4 py-2.5 sm:py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg transition-all"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white rounded-lg font-semibold transition-all shadow-md hover:shadow-lg"
+                  className="w-full sm:flex-1 px-4 py-2.5 sm:py-3 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-semibold rounded-lg transition-all shadow-md hover:shadow-lg"
                 >
                   Simpan
                 </button>
@@ -1226,19 +1295,22 @@ export default function SchedulePolicyPage() {
             </div>
 
             {/* Modal Body */}
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              const formData = new FormData(e.currentTarget);
-              handleEditPolicy({
-                id: editingPolicy.id,
-                title: formData.get('title') as string,
-                description: formData.get('description') as string,
-                category: formData.get('category') as string,
-              });
-            }} className="p-6 space-y-5">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget);
+                handleEditPolicy({
+                  id: editingPolicy.id,
+                  title: formData.get('title') as string,
+                  description: formData.get('description') as string,
+                  category: formData.get('category') as string,
+                });
+              }}
+              className="p-5 sm:p-6 space-y-4 sm:space-y-5"
+            >
               {/* Title */}
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
+              <div className="space-y-1.5 sm:space-y-2">
+                <label className="block text-xs sm:text-sm font-semibold text-slate-700">
                   Judul Kebijakan <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -1246,30 +1318,40 @@ export default function SchedulePolicyPage() {
                   name="title"
                   required
                   defaultValue={editingPolicy.title}
-                  className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all"
+                  className="w-full bg-white border border-slate-300 rounded-lg shadow-sm px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/40 transition-all min-h-[3rem]"
                 />
               </div>
 
               {/* Category */}
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
+              <div className="space-y-1.5 sm:space-y-2">
+                <label className="block text-xs sm:text-sm font-semibold text-slate-700">
                   Kategori <span className="text-red-500">*</span>
                 </label>
-                <select
-                  name="category"
-                  required
-                  defaultValue={editingPolicy.category}
-                  className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all"
-                >
-                  <option value="attendance">Kehadiran</option>
-                  <option value="leave">Cuti & Izin</option>
-                  <option value="general">Umum</option>
-                </select>
+                <div className="relative">
+                  <select
+                    name="category"
+                    required
+                    defaultValue={editingPolicy.category}
+                    className="w-full bg-white border border-slate-300 rounded-lg shadow-sm px-3 sm:px-4 py-2.5 sm:py-3 pr-12 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/40 transition-all min-h-[3rem] appearance-none"
+                  >
+                    <option value="attendance">Kehadiran</option>
+                    <option value="leave">Cuti & Izin</option>
+                    <option value="general">Umum</option>
+                  </select>
+                  <svg
+                    className="pointer-events-none absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </div>
 
               {/* Description */}
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
+              <div className="space-y-1.5 sm:space-y-2">
+                <label className="block text-xs sm:text-sm font-semibold text-slate-700">
                   Deskripsi <span className="text-red-500">*</span>
                 </label>
                 <textarea
@@ -1277,25 +1359,25 @@ export default function SchedulePolicyPage() {
                   required
                   rows={5}
                   defaultValue={editingPolicy.description}
-                  className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all resize-none"
+                  className="w-full bg-white border border-slate-300 rounded-lg shadow-sm px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/40 transition-all resize-none min-h-[140px]"
                 ></textarea>
               </div>
 
               {/* Actions */}
-              <div className="flex gap-3 pt-2">
+              <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => {
                     setShowEditPolicyModal(false);
                     setEditingPolicy(null);
                   }}
-                  className="flex-1 px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold transition-all"
+                  className="w-full sm:flex-1 px-4 py-2.5 sm:py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg transition-all"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-lg font-semibold transition-all shadow-md hover:shadow-lg"
+                  className="w-full sm:flex-1 px-4 py-2.5 sm:py-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold rounded-lg transition-all shadow-md hover:shadow-lg"
                 >
                   Update
                 </button>
