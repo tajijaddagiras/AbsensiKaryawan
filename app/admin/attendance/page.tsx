@@ -1370,6 +1370,9 @@ export default function AttendancePage() {
           </div>
         )}
 
+        {/* Padding bottom untuk buffer space saat scroll sampai habis */}
+        <div className="pb-8 sm:pb-12"></div>
+
         {/* Detail Modal - Redesigned Compact & Professional */}
         {showDetailModal && selectedRecord && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4" onClick={() => setShowDetailModal(false)}>

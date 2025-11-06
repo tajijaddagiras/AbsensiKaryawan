@@ -49,11 +49,11 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  /* Smooth scrolling */
-  scroll-behavior: smooth;
+  /* Smooth scrolling - hanya untuk anchor links, bukan scroll normal */
+  /* scroll-behavior: smooth dihapus untuk mencegah jump saat scroll cepat */
   /* Allow natural overscroll behavior for smooth scrolling experience */
   /* overscroll-behavior removed - only apply to modals */
-  -webkit-overflow-scrolling: touch;
+  /* -webkit-overflow-scrolling: touch dipindahkan ke scrollable containers saja */
   /* Prevent text size adjustment on iOS */
   -webkit-text-size-adjust: 100%;
   /* Prevent horizontal overscroll but allow vertical for natural feel */
@@ -76,12 +76,25 @@ body.body-scroll-locked {
   body {
     /* Use dynamic viewport height for iOS */
     min-height: -webkit-fill-available;
+    /* Prevent overscroll bounce pada iOS Safari untuk scroll yang stabil */
+    overscroll-behavior-y: contain;
   }
   
   /* Fix for admin/user pages with sidebar */
   html {
     height: -webkit-fill-available;
   }
+}
+
+/* Smooth scrolling hanya untuk anchor links (hash navigation) */
+/* Tidak diterapkan di html/body untuk mencegah jump saat scroll cepat */
+/* Jika diperlukan smooth scroll untuk anchor links, gunakan JavaScript dengan behavior: 'smooth' */
+
+/* -webkit-overflow-scrolling: touch hanya untuk scrollable containers */
+.scrollable-container,
+.custom-scrollbar,
+[class*="overflow"] {
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Smooth animations */
