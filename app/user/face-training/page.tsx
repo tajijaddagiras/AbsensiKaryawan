@@ -129,7 +129,7 @@ export default function FaceTrainingPage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
         <UserSidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
 
-        <div className="lg:pl-64 flex flex-col min-h-screen">
+        <div className="lg:pl-64 flex flex-col">
           {/* Header */}
           <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-slate-200 shadow-sm">
             <div className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
@@ -173,7 +173,7 @@ export default function FaceTrainingPage() {
       <UserSidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
 
       {/* Main Content */}
-      <div className="lg:pl-64 flex flex-col min-h-screen">
+      <div className="lg:pl-64 flex flex-col">
         {/* Header */}
         <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
           <div className="px-4 sm:px-6 lg:px-8 py-4">

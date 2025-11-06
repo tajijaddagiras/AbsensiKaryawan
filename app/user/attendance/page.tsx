@@ -602,7 +602,7 @@ export default function AttendancePage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
         <UserSidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
 
-        <div className="lg:ml-64 min-h-screen">
+        <div className="lg:ml-64">
           {/* Header */}
           <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-slate-200 shadow-sm">
             <div className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
@@ -647,7 +647,7 @@ export default function AttendancePage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <UserSidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
 
-      <div className="lg:ml-64 min-h-screen">
+      <div className="lg:ml-64">
         {/* Header */}
         <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-slate-200 shadow-sm">
           <div className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4">

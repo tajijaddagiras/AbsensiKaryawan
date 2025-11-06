@@ -51,11 +51,13 @@ body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   /* Smooth scrolling */
   scroll-behavior: smooth;
-  /* Prevent bounce effect on iOS */
-  overscroll-behavior: none;
+  /* Allow natural overscroll behavior for smooth scrolling experience */
+  /* overscroll-behavior removed - only apply to modals */
   -webkit-overflow-scrolling: touch;
   /* Prevent text size adjustment on iOS */
   -webkit-text-size-adjust: 100%;
+  /* Prevent horizontal overscroll but allow vertical for natural feel */
+  overscroll-behavior-x: none;
 }
 
 /* Lock body scroll when modal is open */
@@ -74,6 +76,11 @@ body.body-scroll-locked {
   body {
     /* Use dynamic viewport height for iOS */
     min-height: -webkit-fill-available;
+  }
+  
+  /* Fix for admin/user pages with sidebar */
+  html {
+    height: -webkit-fill-available;
   }
 }
 
