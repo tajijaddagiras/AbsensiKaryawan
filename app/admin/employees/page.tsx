@@ -9,6 +9,7 @@ import ErrorNotification from '@/components/ErrorNotification';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import SkeletonCard from '@/components/SkeletonCard';
 import { cachedFetch } from '@/lib/utils/apiCache';
+import { useBodyScrollLock } from '@/lib/hooks/useBodyScrollLock';
 
 interface Employee {
   id: string;
@@ -59,6 +60,9 @@ export default function EmployeesPage() {
     show: boolean;
     employee: Employee | null;
   }>({ show: false, employee: null });
+
+  // Lock body scroll when modals are open
+  useBodyScrollLock(showAddModal || showEditModal);
 
   useEffect(() => {
     checkAuth();
@@ -652,7 +656,7 @@ export default function EmployeesPage() {
       {/* Add Employee Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4" onClick={() => setShowAddModal(false)}>
-          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 w-full max-w-sm sm:max-w-md lg:max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl animate-fadeIn" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 w-full max-w-sm sm:max-w-md lg:max-w-2xl max-dvh-90 overflow-y-auto custom-scrollbar shadow-2xl animate-fadeIn" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4 sm:mb-6">
               <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-slate-900 flex items-center gap-2">
                 <svg className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -811,7 +815,7 @@ export default function EmployeesPage() {
       {/* Edit Employee Modal */}
       {showEditModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4" onClick={() => setShowEditModal(false)}>
-          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 w-full max-w-sm sm:max-w-md lg:max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl animate-fadeIn" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 w-full max-w-sm sm:max-w-md lg:max-w-2xl max-dvh-90 overflow-y-auto custom-scrollbar shadow-2xl animate-fadeIn" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4 sm:mb-6">
               <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-slate-900 flex items-center gap-2">
                 <svg className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

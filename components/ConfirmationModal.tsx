@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useBodyScrollLock } from '@/lib/hooks/useBodyScrollLock';
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -32,6 +33,9 @@ export default function ConfirmationModal({
   const [show, setShow] = useState(false);
   const [confirmInput, setConfirmInput] = useState('');
   const [notes, setNotes] = useState('');
+
+  // Lock body scroll when modal is open
+  useBodyScrollLock(isOpen);
 
   useEffect(() => {
     if (isOpen) {
@@ -76,7 +80,7 @@ export default function ConfirmationModal({
       onClick={handleCancel}
     >
       <div 
-        className={`relative bg-white rounded-2xl shadow-2xl max-w-xs w-full overflow-hidden transition-all duration-300 transform ${
+        className={`relative bg-white rounded-2xl shadow-2xl max-w-xs w-full max-dvh-90 overflow-y-auto custom-scrollbar transition-all duration-300 transform ${
           show ? 'scale-100 opacity-100 translate-y-0' : 'scale-90 opacity-0 translate-y-2'
         }`}
         onClick={(e) => e.stopPropagation()}

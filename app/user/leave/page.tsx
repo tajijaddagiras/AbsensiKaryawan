@@ -8,6 +8,7 @@ import SuccessNotification from '@/components/SuccessNotification';
 import ErrorNotification from '@/components/ErrorNotification';
 import SkeletonCard from '@/components/SkeletonCard';
 import { cachedFetch } from '@/lib/utils/apiCache';
+import { useBodyScrollLock } from '@/lib/hooks/useBodyScrollLock';
 
 interface LeaveRequest {
   id: string;
@@ -47,6 +48,9 @@ export default function UserLeavePage() {
     end_date: '',
     reason: '',
   });
+
+  // Lock body scroll when modals are open
+  useBodyScrollLock(showDetailModal || showFormModal);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -508,7 +512,7 @@ export default function UserLeavePage() {
       {/* Detail Modal - Compact & Professional */}
       {showDetailModal && selectedRequest && employee && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4" onClick={() => setShowDetailModal(false)}>
-          <div className="bg-white rounded-xl sm:rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden animate-fadeIn" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-xl sm:rounded-2xl max-w-lg w-full max-dvh-95 overflow-hidden animate-fadeIn" onClick={(e) => e.stopPropagation()}>
             {/* Header - Compact */}
             <div className="bg-gradient-to-br from-purple-500 via-pink-500 to-rose-600 p-4 sm:p-5">
               <div className="flex items-center justify-between">
@@ -546,7 +550,7 @@ export default function UserLeavePage() {
             </div>
 
             {/* Content - Compact */}
-            <div className="p-4 sm:p-5 bg-slate-50 space-y-3 max-h-[65vh] overflow-y-auto custom-scrollbar">
+            <div className="p-4 sm:p-5 bg-slate-50 space-y-3 max-h-[65dvh] overflow-y-auto custom-scrollbar">
               {/* Status & Type */}
               <div className="grid grid-cols-2 gap-3 min-w-0">
                 <div className="bg-white rounded-lg p-3 border border-slate-200 min-w-0">
@@ -669,7 +673,7 @@ export default function UserLeavePage() {
       {/* Form Modal */}
       {showFormModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4" onClick={() => setShowFormModal(false)}>
-          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 max-w-sm sm:max-w-md w-full shadow-2xl border border-slate-200 max-h-[95vh] overflow-y-auto custom-scrollbar animate-fadeIn" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 max-w-sm sm:max-w-md w-full shadow-2xl border border-slate-200 max-dvh-95 overflow-y-auto custom-scrollbar animate-fadeIn" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4 sm:mb-6">
               <h2 className="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
                 <svg className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

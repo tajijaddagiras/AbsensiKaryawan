@@ -8,6 +8,7 @@ import {
   TRAINING_STEPS,
   FaceTrainingStep 
 } from '@/lib/utils/faceTraining';
+import { useBodyScrollLock } from '@/lib/hooks/useBodyScrollLock';
 
 interface FaceTrainingCameraProps {
   onComplete: (faceEncoding: string, matchScore: number) => void;
@@ -31,6 +32,9 @@ export default function FaceTrainingCamera({ onComplete, onClose }: FaceTraining
   const encodingsRef = useRef<string[]>([]);
   const scoresRef = useRef<number[]>([]);
   const completedRef = useRef(false); // Flag to prevent duplicate completion
+
+  // Lock body scroll when modal is open (this component always renders as modal)
+  useBodyScrollLock(true);
 
   useEffect(() => {
     // Wait for video element to be available
@@ -364,7 +368,7 @@ export default function FaceTrainingCamera({ onComplete, onClose }: FaceTraining
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-2xl p-6 max-w-2xl w-full max-dvh-90 overflow-y-auto custom-scrollbar">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-900">Pelatihan Wajah</h2>
           <button
@@ -386,7 +390,7 @@ export default function FaceTrainingCamera({ onComplete, onClose }: FaceTraining
         {/* Error Modal */}
         {error && (
           <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl border-2 border-red-200">
+            <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl p-6 sm:p-8 max-w-md w-full max-dvh-90 overflow-y-auto custom-scrollbar shadow-2xl border-2 border-red-200">
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0">
                   <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">

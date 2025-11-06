@@ -9,6 +9,7 @@ import ErrorNotification from '@/components/ErrorNotification';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import SkeletonCard from '@/components/SkeletonCard';
 import { cachedFetch } from '@/lib/utils/apiCache';
+import { useBodyScrollLock } from '@/lib/hooks/useBodyScrollLock';
 
 interface LeaveRequest {
   id: string;
@@ -60,6 +61,9 @@ export default function LeaveRequestPage() {
     show: boolean;
     request: LeaveRequest | null;
   }>({ show: false, request: null });
+
+  // Lock body scroll when modals are open
+  useBodyScrollLock(showDetailModal || confirmApprove.show || confirmReject.show);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -605,7 +609,7 @@ export default function LeaveRequestPage() {
       {/* Detail Modal - Compact & Professional */}
       {showDetailModal && selectedRequest && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4" onClick={() => setShowDetailModal(false)}>
-          <div className="bg-white rounded-xl sm:rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden animate-fadeIn" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-xl sm:rounded-2xl max-w-lg w-full max-dvh-95 overflow-hidden animate-fadeIn" onClick={(e) => e.stopPropagation()}>
             {/* Header - Compact */}
             <div className="bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 p-4 sm:p-5">
               <div className="flex items-center justify-between">
@@ -643,7 +647,7 @@ export default function LeaveRequestPage() {
             </div>
 
             {/* Content - Compact */}
-            <div className="p-4 sm:p-5 bg-slate-50 space-y-3 max-h-[65vh] overflow-y-auto custom-scrollbar">
+            <div className="p-4 sm:p-5 bg-slate-50 space-y-3 max-h-[65dvh] overflow-y-auto custom-scrollbar">
               {/* Status & Type */}
               <div className="grid grid-cols-2 gap-3 min-w-0">
                 <div className="bg-white rounded-lg p-3 border border-slate-200 min-w-0">

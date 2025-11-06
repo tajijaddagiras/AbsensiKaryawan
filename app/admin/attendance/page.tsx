@@ -7,6 +7,7 @@ import dynamic from 'next/dynamic';
 import AdminSidebar, { SidebarToggleButton } from '@/components/AdminSidebar';
 import { useDebounce } from '@/lib/utils/useDebounce';
 import SkeletonCard from '@/components/SkeletonCard';
+import { useBodyScrollLock } from '@/lib/hooks/useBodyScrollLock';
 // Import CSS untuk DatePicker (akan di-bundle oleh Next.js)
 import 'react-datepicker/dist/react-datepicker.css';
 
@@ -49,6 +50,9 @@ export default function AttendancePage() {
   const [filter, setFilter] = useState<'all' | 'today' | 'week' | 'custom'>('today');
   const [selectedRecord, setSelectedRecord] = useState<AttendanceRecord | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+
+  // Lock body scroll when modal is open
+  useBodyScrollLock(showDetailModal);
   
   // Date picker states
   const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
@@ -1369,7 +1373,7 @@ export default function AttendancePage() {
         {/* Detail Modal - Redesigned Compact & Professional */}
         {showDetailModal && selectedRecord && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4" onClick={() => setShowDetailModal(false)}>
-          <div className="bg-white rounded-xl sm:rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden animate-fadeIn" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-xl sm:rounded-2xl max-w-lg w-full max-dvh-95 overflow-hidden animate-fadeIn" onClick={(e) => e.stopPropagation()}>
             {/* Header - Compact */}
             <div className="bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 p-4 sm:p-5">
               <div className="flex items-center justify-between">

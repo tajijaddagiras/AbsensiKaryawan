@@ -8,6 +8,7 @@ import ErrorNotification from '@/components/ErrorNotification';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import SkeletonCard from '@/components/SkeletonCard';
 import { cachedFetch } from '@/lib/utils/apiCache';
+import { useBodyScrollLock } from '@/lib/hooks/useBodyScrollLock';
 
 interface OfficeLocation {
   id: string;
@@ -49,6 +50,9 @@ export default function OfficeLocationsPage() {
     show: boolean;
     location: OfficeLocation | null;
   }>({ show: false, location: null });
+
+  // Lock body scroll when modal is open
+  useBodyScrollLock(showModal);
 
   const handleLogout = () => {
     localStorage.removeItem('user');
@@ -618,7 +622,7 @@ export default function OfficeLocationsPage() {
       {/* Add/Edit Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4" onClick={() => setShowModal(false)}>
-          <div className="bg-white rounded-2xl p-6 sm:p-8 max-w-lg w-full shadow-2xl animate-fadeIn" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-2xl p-6 sm:p-8 max-w-lg w-full max-dvh-90 overflow-y-auto custom-scrollbar shadow-2xl animate-fadeIn" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
                 <svg className="w-7 h-7 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

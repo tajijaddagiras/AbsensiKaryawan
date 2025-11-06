@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import SuccessNotification from '@/components/SuccessNotification';
 import ErrorNotification from '@/components/ErrorNotification';
+import { useBodyScrollLock } from '@/lib/hooks/useBodyScrollLock';
 
 interface UserSidebarProps {
   isSidebarOpen?: boolean;
@@ -36,6 +37,9 @@ export default function UserSidebar({ isSidebarOpen: externalSidebarOpen, setIsS
   const [internalSidebarOpen, setInternalSidebarOpen] = useState(false);
   const isSidebarOpen = externalSidebarOpen !== undefined ? externalSidebarOpen : internalSidebarOpen;
   const setIsSidebarOpen = externalSetSidebarOpen || setInternalSidebarOpen;
+
+  // Lock body scroll when modals are open
+  useBodyScrollLock(showProfileModal || showEditModal);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -282,7 +286,7 @@ export default function UserSidebar({ isSidebarOpen: externalSidebarOpen, setIsS
       {/* Profile View Modal */}
       {showProfileModal && (
         <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowProfileModal(false)}>
-          <div className="bg-white rounded-2xl max-w-sm w-full shadow-2xl animate-fadeIn" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-2xl max-w-sm w-full max-dvh-90 overflow-y-auto custom-scrollbar shadow-2xl animate-fadeIn" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 text-center">
               {user?.avatar_url ? (
                 <img src={user.avatar_url} alt="Profile" className="w-24 h-24 rounded-full object-cover border-4 border-blue-500 mx-auto mb-4 shadow-lg" />
@@ -310,7 +314,7 @@ export default function UserSidebar({ isSidebarOpen: externalSidebarOpen, setIsS
       {/* Edit Profile Modal - 2 Sections Design */}
       {showEditModal && (
         <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowEditModal(false)}>
-          <div className="bg-white rounded-2xl max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-hidden animate-fadeIn" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-2xl max-w-2xl w-full shadow-2xl max-dvh-90 overflow-hidden animate-fadeIn" onClick={(e) => e.stopPropagation()}>
             {/* Header */}
             <div className="bg-gradient-to-r from-blue-500 to-indigo-600 p-6 text-white">
               <div className="flex items-center justify-between">
@@ -329,7 +333,7 @@ export default function UserSidebar({ isSidebarOpen: externalSidebarOpen, setIsS
             </div>
 
             {/* Content - 2 Sections */}
-            <div className="grid md:grid-cols-2 gap-6 p-6 overflow-y-auto max-h-[calc(90vh-180px)]">
+            <div className="grid md:grid-cols-2 gap-6 p-6 overflow-y-auto max-h-[calc(90dvh-180px)] custom-scrollbar">
               {/* Left Section - Profile Info */}
               <div className="space-y-4">
                 <div className="bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl p-5 border border-blue-200">

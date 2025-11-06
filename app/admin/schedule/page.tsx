@@ -8,6 +8,7 @@ import ErrorNotification from '@/components/ErrorNotification';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import SkeletonCard from '@/components/SkeletonCard';
 import { cachedFetch } from '@/lib/utils/apiCache';
+import { useBodyScrollLock } from '@/lib/hooks/useBodyScrollLock';
 
 interface WorkSchedule {
   id: string;
@@ -93,6 +94,9 @@ export default function SchedulePolicyPage() {
     type: 'success' | 'error';
     message: string;
   }>({ show: false, type: 'success', message: '' });
+
+  // Lock body scroll when modals are open
+  useBodyScrollLock(showAddHolidayModal || showEditHolidayModal || showAddPolicyModal || showEditPolicyModal);
 
   const handleLogout = () => {
     localStorage.removeItem('user');
@@ -867,7 +871,7 @@ export default function SchedulePolicyPage() {
       {/* Add Holiday Modal */}
       {showAddHolidayModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-dvh-90 overflow-y-auto custom-scrollbar">
             {/* Modal Header */}
             <div className="sticky top-0 bg-gradient-to-r from-green-500 to-emerald-600 px-6 py-4 rounded-t-2xl">
               <div className="flex items-center justify-between">
@@ -978,7 +982,7 @@ export default function SchedulePolicyPage() {
       {/* Edit Holiday Modal */}
       {showEditHolidayModal && editingHoliday && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-dvh-90 overflow-y-auto custom-scrollbar">
             {/* Modal Header */}
             <div className="sticky top-0 bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-4 rounded-t-2xl">
               <div className="flex items-center justify-between">
@@ -1098,7 +1102,7 @@ export default function SchedulePolicyPage() {
       {/* Add Policy Modal */}
       {showAddPolicyModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-dvh-90 overflow-y-auto custom-scrollbar">
             {/* Modal Header */}
             <div className="sticky top-0 bg-gradient-to-r from-purple-500 to-pink-600 px-6 py-4 rounded-t-2xl">
               <div className="flex items-center justify-between">
@@ -1197,7 +1201,7 @@ export default function SchedulePolicyPage() {
       {/* Edit Policy Modal */}
       {showEditPolicyModal && editingPolicy && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-dvh-90 overflow-y-auto custom-scrollbar">
             {/* Modal Header */}
             <div className="sticky top-0 bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-4 rounded-t-2xl">
               <div className="flex items-center justify-between">

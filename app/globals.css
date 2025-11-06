@@ -49,6 +49,32 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  /* Smooth scrolling */
+  scroll-behavior: smooth;
+  /* Prevent bounce effect on iOS */
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+  /* Prevent text size adjustment on iOS */
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Lock body scroll when modal is open */
+body.body-scroll-locked {
+  overflow: hidden !important;
+  position: fixed !important;
+  width: 100% !important;
+  height: 100% !important;
+  /* Prevent iOS bounce */
+  overscroll-behavior: none !important;
+  -webkit-overflow-scrolling: auto !important;
+}
+
+/* Prevent iOS Safari address bar from affecting layout */
+@supports (-webkit-touch-callout: none) {
+  body {
+    /* Use dynamic viewport height for iOS */
+    min-height: -webkit-fill-available;
+  }
 }
 
 /* Smooth animations */
@@ -202,4 +228,40 @@ body {
 .custom-scrollbar {
   scrollbar-width: thin !important;
   scrollbar-color: #3b82f6 #f1f5f9 !important;
+}
+
+/* Dynamic viewport height utility for iOS Safari */
+.dvh-full {
+  height: 100dvh;
+}
+
+.dvh-screen {
+  min-height: 100dvh;
+}
+
+.max-dvh-90 {
+  max-height: 90dvh;
+}
+
+.max-dvh-95 {
+  max-height: 95dvh;
+}
+
+/* Fallback for browsers that don't support dvh */
+@supports not (height: 100dvh) {
+  .dvh-full {
+    height: 100vh;
+  }
+  
+  .dvh-screen {
+    min-height: 100vh;
+  }
+  
+  .max-dvh-90 {
+    max-height: 90vh;
+  }
+  
+  .max-dvh-95 {
+    max-height: 95vh;
+  }
 }
