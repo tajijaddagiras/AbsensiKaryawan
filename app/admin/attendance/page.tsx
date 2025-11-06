@@ -889,25 +889,22 @@ export default function AttendancePage() {
         <div className="lg:ml-64">
           {/* Header */}
           <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-slate-200 shadow-sm">
-            <div className="px-4 sm:px-6 lg:px-8 py-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3 flex-1 lg:flex-none">
+            <div className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                   <SidebarToggleButton onClick={() => setIsSidebarOpen(true)} />
-                  <div className="flex items-center gap-2 min-w-0">
-                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center"></div>
-                    <div className="flex flex-col min-w-0">
-                      <div className="h-6 bg-slate-200 rounded w-40 animate-pulse"></div>
-                      <div className="h-4 bg-slate-200 rounded w-32 mt-1 animate-pulse"></div>
-                    </div>
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0"></div>
+                  <div className="flex flex-col min-w-0">
+                    <div className="h-6 bg-slate-200 rounded w-40 animate-pulse"></div>
+                    <div className="h-4 bg-slate-200 rounded w-32 mt-1 animate-pulse"></div>
                   </div>
                 </div>
-                <div className="h-10 bg-slate-200 rounded-lg w-24 animate-pulse"></div>
               </div>
             </div>
           </header>
 
           {/* Main Content */}
-          <main className="p-4 sm:p-6 lg:p-8">
+          <main className="p-3 sm:p-4 md:p-6 lg:p-8">
             <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
               {/* Stats Summary Skeleton */}
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
@@ -963,38 +960,33 @@ export default function AttendancePage() {
       <div className="lg:ml-64">
       {/* Header */}
       <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-slate-200 shadow-sm">
-        <div className="px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            {/* Page Title */}
-            <div className="flex items-center gap-3 flex-1 lg:flex-none">
+        <div className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+          <div className="flex items-center justify-between gap-3">
+            {/* Left: Toggle + Icon + Title */}
+            <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
               <SidebarToggleButton onClick={() => setIsSidebarOpen(true)} />
-              <div className="flex flex-col min-w-0">
-              <div className="flex items-center gap-2 min-w-0">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                  </svg>
-                </div>
-                <div className="flex flex-col min-w-0">
-                  <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-slate-900 truncate">Laporan Absensi</h2>
-                  <p className="text-xs sm:text-sm text-slate-500 truncate">{currentDate}</p>
-                </div>
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
               </div>
-              
+              <div className="flex flex-col min-w-0">
+                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-slate-900 truncate">Laporan Absensi</h2>
+                <p className="text-xs sm:text-sm text-slate-500 truncate">{currentDate}</p>
               </div>
             </div>
-
-            {/* Logout moved to sidebar */}
+            
+            {/* Right: (empty - logout moved to sidebar) */}
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="p-4 sm:p-6 lg:p-8">
-        <div className="max-w-7xl mx-auto">
+      <main className="p-3 sm:p-4 md:p-6 lg:p-8">
+        <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
           <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 hover:shadow-md transition-all">
             <div className="flex items-center gap-3 mb-2">
               <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -1081,7 +1073,7 @@ export default function AttendancePage() {
         </div>
 
         {/* Filter Tabs & Month Picker */}
-        <div className="mb-6 space-y-4">
+        <div className="space-y-4">
           {/* Quick Filters */}
           <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-sm border border-slate-200">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
