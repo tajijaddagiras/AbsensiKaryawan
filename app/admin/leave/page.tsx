@@ -555,49 +555,44 @@ export default function LeaveRequestPage() {
                       <p className="text-xs text-slate-700 line-clamp-2">{request.reason}</p>
                     </div>
 
-                    {/* Action Buttons - 2x2 Grid */}
-                    <div className="grid grid-cols-2 gap-1.5 pt-1">
-                      <button
-                        onClick={() => handleViewDetail(request)}
-                        className="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-md text-blue-600 hover:text-blue-700 text-xs font-semibold transition-all flex items-center justify-center gap-1"
-                        title="Detail"
-                      >
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                        <span>Detail</span>
-                      </button>
-                      
-                      {request.status === 'pending' ? (
-                        <>
-                          <button
-                            onClick={() => handleApproveClick(request)}
-                            className="px-2.5 py-1.5 bg-green-50 hover:bg-green-100 border border-green-200 rounded-md text-green-600 hover:text-green-700 text-xs font-semibold transition-all flex items-center justify-center gap-1"
-                            title="Setujui"
-                          >
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                            <span>Setujui</span>
-                          </button>
-                          <button
-                            onClick={() => handleRejectClick(request)}
-                            className="px-2.5 py-1.5 bg-red-50 hover:bg-red-100 border border-red-200 rounded-md text-red-600 hover:text-red-700 text-xs font-semibold transition-all flex items-center justify-center gap-1 col-span-2"
-                            title="Tolak"
-                          >
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                            <span>Tolak</span>
-                          </button>
-                        </>
-                      ) : (
-                        <div className="col-span-2 text-center py-1">
-                          <span className="text-xs text-slate-400 italic">No action available</span>
-                        </div>
-                      )}
-                    </div>
+                    {/* Action Button Detail - Full Width */}
+                    <button
+                      onClick={() => handleViewDetail(request)}
+                      className="w-full px-3 py-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg text-blue-600 hover:text-blue-700 text-sm font-semibold transition-all flex items-center justify-center gap-2"
+                      title="Detail"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      <span>Detail</span>
+                    </button>
+
+                    {/* Action Buttons Setujui/Tolak - Hanya untuk status pending */}
+                    {request.status === 'pending' && (
+                      <div className="grid grid-cols-2 gap-1.5 pt-1">
+                        <button
+                          onClick={() => handleApproveClick(request)}
+                          className="px-2.5 py-1.5 bg-green-50 hover:bg-green-100 border border-green-200 rounded-md text-green-600 hover:text-green-700 text-xs font-semibold transition-all flex items-center justify-center gap-1"
+                          title="Setujui"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          <span>Setujui</span>
+                        </button>
+                        <button
+                          onClick={() => handleRejectClick(request)}
+                          className="px-2.5 py-1.5 bg-red-50 hover:bg-red-100 border border-red-200 rounded-md text-red-600 hover:text-red-700 text-xs font-semibold transition-all flex items-center justify-center gap-1"
+                          title="Tolak"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                          <span>Tolak</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               );

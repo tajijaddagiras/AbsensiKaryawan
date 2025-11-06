@@ -907,9 +907,9 @@ export default function AttendancePage() {
           <main className="p-3 sm:p-4 md:p-6 lg:p-8">
             <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
               {/* Stats Summary Skeleton */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 animate-pulse">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div key={i} className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm border border-slate-200 animate-pulse">
                     <div className="flex items-center gap-3 mb-2">
                       <div className="w-10 h-10 bg-slate-200 rounded-lg"></div>
                       <div className="flex-1 space-y-2">
@@ -922,7 +922,7 @@ export default function AttendancePage() {
               </div>
 
               {/* Filter Tabs Skeleton */}
-              <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-sm border border-slate-200">
+              <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm border border-slate-200">
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
                   {[1, 2, 3, 4].map((i) => (
                     <div key={i} className="h-10 bg-slate-200 rounded-lg animate-pulse"></div>
@@ -931,13 +931,13 @@ export default function AttendancePage() {
               </div>
 
               {/* Search Skeleton */}
-              <div className="bg-white rounded-xl sm:rounded-2xl p-4 shadow-sm border border-slate-200">
+              <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm border border-slate-200">
                 <div className="h-10 bg-slate-200 rounded-lg animate-pulse"></div>
               </div>
 
               {/* Attendance List Skeleton */}
-              <div className="space-y-3">
-                <SkeletonCard variant="attendance" count={5} />
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-4">
+                <SkeletonCard variant="attendance" count={6} />
               </div>
             </div>
           </main>
@@ -985,87 +985,87 @@ export default function AttendancePage() {
       <main className="p-3 sm:p-4 md:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
 
-        {/* Stats Cards */}
+        {/* Stats Cards - Redesigned untuk konsistensi dengan dashboard */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 hover:shadow-md transition-all">
+          <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm border border-slate-200 hover:shadow-md transition-all group">
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
-              <div className="flex-1">
-                <p className="text-xs sm:text-sm text-slate-500 font-medium">Total</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-slate-500 text-xs font-medium">Total</p>
                 <p className="text-xl sm:text-2xl font-bold text-slate-900">{stats.total}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm border border-green-200 hover:shadow-md transition-all">
+          <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm border border-slate-200 hover:shadow-md transition-all group">
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <div className="flex-1">
-                <p className="text-xs sm:text-sm text-slate-500 font-medium">Hadir</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-slate-500 text-xs font-medium">Hadir</p>
                 <p className="text-xl sm:text-2xl font-bold text-green-600">{stats.present}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm border border-emerald-200 hover:shadow-md transition-all">
+          <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm border border-slate-200 hover:shadow-md transition-all group">
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <div className="flex-1">
-                <p className="text-xs sm:text-sm text-slate-500 font-medium">Tepat Waktu</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-slate-500 text-xs font-medium">Tepat Waktu</p>
                 <p className="text-xl sm:text-2xl font-bold text-emerald-600">{stats.onTime}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm border border-orange-200 hover:shadow-md transition-all">
+          <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm border border-slate-200 hover:shadow-md transition-all group">
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-amber-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <div className="flex-1">
-                <p className="text-xs sm:text-sm text-slate-500 font-medium">Toleransi</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-slate-500 text-xs font-medium">Toleransi</p>
                 <p className="text-xl sm:text-2xl font-bold text-orange-600">{stats.withinTolerance}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm border border-yellow-200 hover:shadow-md transition-all">
+          <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm border border-slate-200 hover:shadow-md transition-all group">
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <div className="flex-1">
-                <p className="text-xs sm:text-sm text-slate-500 font-medium">Terlambat</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-slate-500 text-xs font-medium">Terlambat</p>
                 <p className="text-xl sm:text-2xl font-bold text-yellow-600">{stats.late}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm border border-indigo-200 hover:shadow-md transition-all">
+          <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm border border-slate-200 hover:shadow-md transition-all group">
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
               </div>
-              <div className="flex-1">
-                <p className="text-xs sm:text-sm text-slate-500 font-medium">Check-Out</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-slate-500 text-xs font-medium">Check-Out</p>
                 <p className="text-xl sm:text-2xl font-bold text-indigo-600">{stats.checkOut}</p>
               </div>
             </div>
@@ -1075,7 +1075,7 @@ export default function AttendancePage() {
         {/* Filter Tabs & Month Picker */}
         <div className="space-y-4">
           {/* Quick Filters */}
-          <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-sm border border-slate-200">
+          <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm border border-slate-200">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
               <button
                 onClick={() => { setFilter('today'); setUseMonthFilter(false); setSearchQuery(''); }}
@@ -1167,7 +1167,7 @@ export default function AttendancePage() {
 
           {/* Month Picker & Search */}
           {useMonthFilter && (
-            <div className="bg-white rounded-xl sm:rounded-2xl p-4 shadow-sm border border-slate-200">
+            <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm border border-slate-200">
               <div className="flex flex-col sm:flex-row gap-4">
                 {/* Month Picker */}
                 <div className="flex-1">
@@ -1239,7 +1239,7 @@ export default function AttendancePage() {
 
         {/* Attendance List */}
           {filteredAttendance.length === 0 ? (
-          <div className="bg-white rounded-2xl p-12 text-center shadow-sm border border-slate-200">
+          <div className="bg-white rounded-lg sm:rounded-xl p-8 sm:p-12 text-center shadow-sm border border-slate-200">
             <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg className="w-12 h-12 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {searchQuery ? (
@@ -1267,7 +1267,7 @@ export default function AttendancePage() {
             )}
           </div>
         ) : (
-          <div className="space-y-3 sm:space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-4">
             {filteredAttendance.map((record) => {
               // Gunakan getStatusDetailInfo untuk menampilkan status detail (Tepat Waktu, Dalam Toleransi, Terlambat)
               const statusDetailInfo = getStatusDetailInfo(record);
@@ -1275,86 +1275,90 @@ export default function AttendancePage() {
               const checkOut = record.check_out_time ? formatDateTime(record.check_out_time) : null;
               
               return (
-                <div key={record.id} className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-all overflow-hidden">
-                  <div className="p-3 sm:p-4">
-                    <div className="flex flex-col gap-3">
-                      {/* Employee Info with Status Badge - MOBILE & DESKTOP */}
-                      <div className="flex items-start sm:items-center gap-3">
+                <div key={record.id} className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-slate-200 hover:shadow-lg hover:border-blue-200 transition-all overflow-hidden group">
+                  {/* Card Header dengan Gradient - Professional */}
+                  <div className="bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 p-3 sm:p-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2.5 flex-1 min-w-0">
                         {record.employees.avatar_url ? (
-                          <div className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-lg shadow-sm border-2 border-white flex-shrink-0 overflow-hidden">
+                          <div className="relative w-12 h-12 sm:w-13 sm:h-13 rounded-lg border-2 border-white/30 shadow-lg flex-shrink-0 overflow-hidden">
                             <Image 
                               src={record.employees.avatar_url} 
                               alt={record.employees.full_name}
                               fill
                               className="object-cover"
-                              sizes="(max-width: 640px) 44px, 48px"
+                              sizes="(max-width: 640px) 48px, 52px"
                               unoptimized
                             />
                           </div>
                         ) : (
-                          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm sm:text-base shadow-sm flex-shrink-0">
+                          <div className="w-12 h-12 sm:w-13 sm:h-13 rounded-lg bg-white/20 backdrop-blur-sm border-2 border-white/30 flex items-center justify-center text-white font-bold text-base sm:text-lg shadow-lg flex-shrink-0">
                             {record.employees.full_name.substring(0, 2).toUpperCase()}
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-sm sm:text-base font-bold text-slate-900 truncate">{record.employees.full_name}</h3>
-                          <p className="text-xs text-slate-500">{record.employees.employee_code}</p>
-                  </div>
-                        {/* Status Badge - Menampilkan status detail (Tepat Waktu, Dalam Toleransi, Terlambat) */}
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs font-semibold border flex-shrink-0 ${statusDetailInfo.bgColor} ${statusDetailInfo.textColor} ${statusDetailInfo.borderColor}`}>
-                          <span>{statusDetailInfo.icon}</span>
-                          <span className="hidden sm:inline">{statusDetailInfo.label}</span>
-                  </span>
-                </div>
-                
-                      {/* Time Info & Action Button */}
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
-                        {/* Check In & Check Out - Grid */}
-                        <div className="grid grid-cols-2 gap-3 sm:gap-4 flex-1 w-full sm:w-auto">
-                          {/* Check In */}
-                          <div className="bg-slate-50 rounded-lg p-2.5 border border-slate-100">
-                            <div className="flex items-center gap-2 mb-1">
-                              <svg className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                              </svg>
-                              <p className="text-xs text-slate-500 font-medium">Check-In</p>
-                            </div>
-                            <p className="text-sm font-bold text-slate-900">{checkIn.time}</p>
-                            <p className="text-xs text-slate-500">{checkIn.date}</p>
-                          </div>
-
-                          {/* Check Out */}
-                          <div className={`rounded-lg p-2.5 border ${checkOut ? 'bg-indigo-50 border-indigo-100' : 'bg-slate-50 border-slate-100'}`}>
-                            <div className="flex items-center gap-2 mb-1">
-                              <svg className={`w-3.5 h-3.5 flex-shrink-0 ${checkOut ? 'text-indigo-600' : 'text-slate-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                              </svg>
-                              <p className="text-xs text-slate-500 font-medium">Check-Out</p>
-                            </div>
-                            {checkOut ? (
-                              <>
-                                <p className="text-sm font-bold text-slate-900">{checkOut.time}</p>
-                                <p className="text-xs text-slate-500">{checkOut.date}</p>
-                              </>
-                            ) : (
-                              <p className="text-sm text-slate-400">Belum</p>
-                            )}
-                          </div>
+                          <h3 className="text-sm sm:text-base font-bold text-white truncate">{record.employees.full_name}</h3>
+                          <p className="text-xs text-white/80 truncate">{record.employees.employee_code}</p>
                         </div>
-                        
-                        {/* Action Button */}
-                        <button
-                          onClick={() => handleViewDetail(record)}
-                          className="w-full sm:w-auto px-4 py-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg text-blue-600 hover:text-blue-700 text-sm font-semibold transition-all flex items-center justify-center gap-2 group/btn flex-shrink-0"
-                        >
-                          <svg className="w-4 h-4 group-hover/btn:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                          </svg>
-                          <span>Detail</span>
-                        </button>
+                      </div>
+                      {/* Status Badge - Compact dengan style untuk gradient header */}
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold shadow-sm flex-shrink-0 bg-white/20 backdrop-blur-sm text-white border border-white/30">
+                        <span>{statusDetailInfo.icon}</span>
+                        <span className="hidden sm:inline">{statusDetailInfo.label}</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Card Body - Time Info & Action */}
+                  <div className="p-3 sm:p-4 space-y-3">
+                    {/* Check In & Check Out - Grid */}
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                      {/* Check In */}
+                      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-3 border border-blue-100 hover:border-blue-200 transition-all">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                            </svg>
+                          </div>
+                          <p className="text-xs text-slate-600 font-semibold">Check-In</p>
+                        </div>
+                        <p className="text-base sm:text-lg font-bold text-slate-900 mb-0.5">{checkIn.time}</p>
+                        <p className="text-xs text-slate-500">{checkIn.date}</p>
+                      </div>
+
+                      {/* Check Out */}
+                      <div className={`rounded-lg p-3 border transition-all ${checkOut ? 'bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-100 hover:border-indigo-200' : 'bg-slate-50 border-slate-100'}`}>
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${checkOut ? 'bg-gradient-to-br from-indigo-500 to-purple-600' : 'bg-slate-300'}`}>
+                            <svg className={`w-4 h-4 ${checkOut ? 'text-white' : 'text-slate-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                            </svg>
+                          </div>
+                          <p className="text-xs text-slate-600 font-semibold">Check-Out</p>
+                        </div>
+                        {checkOut ? (
+                          <>
+                            <p className="text-base sm:text-lg font-bold text-slate-900 mb-0.5">{checkOut.time}</p>
+                            <p className="text-xs text-slate-500">{checkOut.date}</p>
+                          </>
+                        ) : (
+                          <p className="text-sm text-slate-400 font-medium">Belum</p>
+                        )}
                       </div>
                     </div>
+                    
+                    {/* Action Button - Full Width di Bawah */}
+                    <button
+                      onClick={() => handleViewDetail(record)}
+                      className="w-full px-3 py-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg text-blue-600 hover:text-blue-700 text-sm font-semibold transition-all flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      <span>Detail</span>
+                    </button>
                   </div>
                 </div>
               );
