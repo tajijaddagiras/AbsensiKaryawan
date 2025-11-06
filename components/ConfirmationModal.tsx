@@ -138,7 +138,7 @@ export default function ConfirmationModal({
                 value={confirmInput}
                 onChange={(e) => setConfirmInput(e.target.value)}
                 placeholder={`Ketik "${requireConfirmText}"`}
-                className="w-full px-3 py-2.5 bg-white border-2 border-slate-200 rounded-lg focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/20 transition-all text-sm text-center font-medium"
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 text-center font-medium focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/50 transition-all"
                 autoFocus
               />
             </div>
@@ -155,7 +155,7 @@ export default function ConfirmationModal({
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder={notesPlaceholder}
                 rows={3}
-                className="w-full px-3 py-2.5 bg-white border-2 border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-sm resize-none"
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all resize-none"
                 autoFocus={!requireConfirmText}
               />
             </div>

@@ -909,7 +909,7 @@ export default function SchedulePolicyPage() {
                   name="name"
                   required
                   placeholder="e.g., Tahun Baru 2026"
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/50 transition-all"
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/50 transition-all"
                 />
               </div>
 
@@ -922,7 +922,7 @@ export default function SchedulePolicyPage() {
                   type="date"
                   name="date"
                   required
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/50 transition-all"
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/50 transition-all"
                 />
               </div>
 
@@ -934,7 +934,7 @@ export default function SchedulePolicyPage() {
                 <select
                   name="type"
                   required
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/50 transition-all"
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/50 transition-all"
                 >
                   <option value="national">Libur Nasional</option>
                   <option value="company">Libur Perusahaan</option>
@@ -950,7 +950,7 @@ export default function SchedulePolicyPage() {
                   name="description"
                   rows={3}
                   placeholder="e.g., Hari libur nasional..."
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/50 transition-all resize-none"
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/50 transition-all resize-none"
                 ></textarea>
               </div>
 
@@ -1024,7 +1024,7 @@ export default function SchedulePolicyPage() {
                   name="name"
                   required
                   defaultValue={editingHoliday.name}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all"
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all"
                 />
               </div>
 
@@ -1038,7 +1038,7 @@ export default function SchedulePolicyPage() {
                   name="date"
                   required
                   defaultValue={editingHoliday.date}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all"
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all"
                 />
               </div>
 
@@ -1051,7 +1051,7 @@ export default function SchedulePolicyPage() {
                   name="type"
                   required
                   defaultValue={editingHoliday.type}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all"
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all"
                 >
                   <option value="national">Libur Nasional</option>
                   <option value="company">Libur Perusahaan</option>
@@ -1067,7 +1067,7 @@ export default function SchedulePolicyPage() {
                   name="description"
                   rows={3}
                   defaultValue={editingHoliday.description || ''}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all resize-none"
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all resize-none"
                 ></textarea>
               </div>
 
@@ -1139,7 +1139,7 @@ export default function SchedulePolicyPage() {
                   name="title"
                   required
                   placeholder="e.g., Aturan Lembur"
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all"
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all"
                 />
               </div>
 
@@ -1151,7 +1151,7 @@ export default function SchedulePolicyPage() {
                 <select
                   name="category"
                   required
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all"
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all"
                 >
                   <option value="attendance">Kehadiran</option>
                   <option value="leave">Cuti & Izin</option>
@@ -1169,7 +1169,7 @@ export default function SchedulePolicyPage() {
                   required
                   rows={5}
                   placeholder="Jelaskan kebijakan ini secara detail..."
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all resize-none"
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all resize-none"
                 ></textarea>
               </div>
 
@@ -1242,7 +1242,7 @@ export default function SchedulePolicyPage() {
                   name="title"
                   required
                   defaultValue={editingPolicy.title}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all"
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all"
                 />
               </div>
 
@@ -1255,7 +1255,7 @@ export default function SchedulePolicyPage() {
                   name="category"
                   required
                   defaultValue={editingPolicy.category}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all"
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all"
                 >
                   <option value="attendance">Kehadiran</option>
                   <option value="leave">Cuti & Izin</option>
@@ -1273,7 +1273,7 @@ export default function SchedulePolicyPage() {
                   required
                   rows={5}
                   defaultValue={editingPolicy.description}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all resize-none"
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all resize-none"
                 ></textarea>
               </div>
 

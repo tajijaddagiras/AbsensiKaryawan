@@ -358,7 +358,7 @@ export default function UserSidebar({ isSidebarOpen: externalSidebarOpen, setIsS
                       type="text"
                       value={editData.avatarUrl}
                       onChange={(e) => setEditData({ ...editData, avatarUrl: e.target.value })}
-                      className="w-full px-4 py-2.5 bg-white border-2 border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-sm"
+                      className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all"
                       placeholder="/images/profile.jpg"
                     />
                     <p className="text-xs text-slate-500 mt-1.5">💡 Contoh: /images/nama-foto.jpg</p>
@@ -374,7 +374,7 @@ export default function UserSidebar({ isSidebarOpen: externalSidebarOpen, setIsS
                         type="text"
                         value={editData.username}
                         onChange={(e) => setEditData({ ...editData, username: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-white border-2 border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-sm"
+                        className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all"
                         placeholder="Username"
                       />
                     </div>
@@ -384,7 +384,7 @@ export default function UserSidebar({ isSidebarOpen: externalSidebarOpen, setIsS
                         type="email"
                         value={editData.email}
                         onChange={(e) => setEditData({ ...editData, email: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-white border-2 border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-sm"
+                        className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all"
                         placeholder="email@example.com"
                       />
                     </div>
@@ -410,7 +410,7 @@ export default function UserSidebar({ isSidebarOpen: externalSidebarOpen, setIsS
                         type="password"
                         value={editData.currentPassword}
                         onChange={(e) => setEditData({ ...editData, currentPassword: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-white border-2 border-amber-200 rounded-lg focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all text-sm"
+                        className="w-full bg-white border border-amber-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/50 transition-all"
                         placeholder="••••••••"
                       />
                     </div>
@@ -420,7 +420,7 @@ export default function UserSidebar({ isSidebarOpen: externalSidebarOpen, setIsS
                         type="password"
                         value={editData.newPassword}
                         onChange={(e) => setEditData({ ...editData, newPassword: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-white border-2 border-amber-200 rounded-lg focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all text-sm"
+                        className="w-full bg-white border border-amber-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/50 transition-all"
                         placeholder="••••••••"
                       />
                     </div>
@@ -430,7 +430,7 @@ export default function UserSidebar({ isSidebarOpen: externalSidebarOpen, setIsS
                         type="password"
                         value={editData.confirmPassword}
                         onChange={(e) => setEditData({ ...editData, confirmPassword: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-white border-2 border-amber-200 rounded-lg focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all text-sm"
+                        className="w-full bg-white border border-amber-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/50 transition-all"
                         placeholder="••••••••"
                       />
                     </div>

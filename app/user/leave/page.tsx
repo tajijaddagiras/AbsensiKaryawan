@@ -548,21 +548,21 @@ export default function UserLeavePage() {
             {/* Content - Compact */}
             <div className="p-4 sm:p-5 bg-slate-50 space-y-3 max-h-[65vh] overflow-y-auto custom-scrollbar">
               {/* Status & Type */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-white rounded-lg p-3 border border-slate-200">
+              <div className="grid grid-cols-2 gap-3 min-w-0">
+                <div className="bg-white rounded-lg p-3 border border-slate-200 min-w-0">
                   <p className="text-xs text-slate-500 font-medium mb-1.5">Status</p>
                   {getStatusBadge(selectedRequest.status)}
                 </div>
-                <div className="bg-white rounded-lg p-3 border border-slate-200">
+                <div className="bg-white rounded-lg p-3 border border-slate-200 min-w-0">
                   <p className="text-xs text-slate-500 font-medium mb-1.5">Jenis Izin</p>
-                  <p className="text-sm font-semibold text-slate-900">{getTypeLabel(selectedRequest.leave_type).text}</p>
+                  <p className="text-sm font-semibold text-slate-900 break-words">{getTypeLabel(selectedRequest.leave_type).text}</p>
                 </div>
               </div>
 
               {/* Period & Duration */}
-              <div className="bg-white rounded-lg p-3 sm:p-4 border border-slate-200">
+              <div className="bg-white rounded-lg p-3 sm:p-4 border border-slate-200 min-w-0">
                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                  <div>
+                  <div className="min-w-0">
                     <div className="flex items-center gap-2 mb-2">
                       <div className="w-6 h-6 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
                         <svg className="w-3.5 h-3.5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -571,11 +571,11 @@ export default function UserLeavePage() {
                       </div>
                       <p className="text-xs text-slate-500 font-semibold">Periode</p>
                     </div>
-                    <p className="text-sm font-bold text-slate-900 mb-0.5">{formatDate(selectedRequest.start_date)}</p>
-                    <p className="text-xs text-slate-500">{formatDate(selectedRequest.end_date)}</p>
+                    <p className="text-sm font-bold text-slate-900 mb-0.5 break-words">{formatDate(selectedRequest.start_date)}</p>
+                    <p className="text-xs text-slate-500 break-words">{formatDate(selectedRequest.end_date)}</p>
                   </div>
 
-                  <div>
+                  <div className="min-w-0">
                     <div className="flex items-center gap-2 mb-2">
                       <div className="w-6 h-6 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
                         <svg className="w-3.5 h-3.5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -584,35 +584,35 @@ export default function UserLeavePage() {
                       </div>
                       <p className="text-xs text-slate-500 font-semibold">Durasi</p>
                     </div>
-                    <p className="text-xl sm:text-2xl font-bold text-slate-900">{selectedRequest.days}</p>
-                    <p className="text-xs text-slate-500">hari</p>
+                    <p className="text-xl sm:text-2xl font-bold text-slate-900 break-words">{selectedRequest.days}</p>
+                    <p className="text-xs text-slate-500 break-words">hari</p>
                   </div>
                 </div>
               </div>
 
               {/* Reason */}
-              <div className="bg-white rounded-lg p-3 border border-slate-200">
+              <div className="bg-white rounded-lg p-3 border border-slate-200 min-w-0">
                 <div className="flex items-center gap-2 mb-1.5">
                   <svg className="w-4 h-4 text-purple-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                   <p className="text-xs text-slate-500 font-semibold">Alasan</p>
                 </div>
-                <p className="text-sm text-slate-700">{selectedRequest.reason}</p>
+                <p className="text-sm text-slate-700 break-words whitespace-pre-wrap">{selectedRequest.reason}</p>
               </div>
 
               {/* Admin Notes (if reviewed) */}
               {selectedRequest.admin_notes && (
-                <div className="bg-indigo-50 rounded-lg p-3 border border-indigo-200">
+                <div className="bg-indigo-50 rounded-lg p-3 border border-indigo-200 min-w-0">
                   <div className="flex items-center gap-2 mb-1.5">
                     <svg className="w-4 h-4 text-indigo-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
                     </svg>
                     <p className="text-xs text-indigo-700 font-semibold">Catatan Admin</p>
                   </div>
-                  <p className="text-sm text-indigo-900">{selectedRequest.admin_notes}</p>
+                  <p className="text-sm text-indigo-900 break-words whitespace-pre-wrap">{selectedRequest.admin_notes}</p>
                   {selectedRequest.reviewed_by_name && (
-                    <p className="text-xs text-indigo-600 mt-2">— {selectedRequest.reviewed_by_name}</p>
+                    <p className="text-xs text-indigo-600 mt-2 break-words">— {selectedRequest.reviewed_by_name}</p>
                   )}
                 </div>
               )}
@@ -641,13 +641,13 @@ export default function UserLeavePage() {
               )}
 
               {/* Submitted Date */}
-              <div className="bg-slate-100 rounded-lg p-3 border border-slate-200">
+              <div className="bg-slate-100 rounded-lg p-3 border border-slate-200 min-w-0">
                 <p className="text-xs text-slate-500 mb-1">Diajukan pada</p>
-                <p className="text-sm font-semibold text-slate-700">{formatDate(selectedRequest.created_at)}</p>
+                <p className="text-sm font-semibold text-slate-700 break-words">{formatDate(selectedRequest.created_at)}</p>
                 {selectedRequest.reviewed_at && (
                   <div className="mt-2 pt-2 border-t border-slate-200">
                     <p className="text-xs text-slate-500 mb-0.5">Direview pada</p>
-                    <p className="text-sm font-medium text-slate-600">{formatDate(selectedRequest.reviewed_at)}</p>
+                    <p className="text-sm font-medium text-slate-600 break-words">{formatDate(selectedRequest.reviewed_at)}</p>
                   </div>
                 )}
               </div>
@@ -687,16 +687,16 @@ export default function UserLeavePage() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
               {/* Type */}
               <div>
-                <label className="block text-slate-700 mb-2 text-sm font-semibold">
+                <label className="block text-slate-700 mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold">
                   Jenis Izin
                 </label>
                 <select
                   value={formData.leave_type}
                   onChange={(e) => setFormData({ ...formData, leave_type: e.target.value as any })}
-                  className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50"
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all"
                   required
                 >
                   <option value="sick">🤒 Sakit</option>
@@ -707,28 +707,28 @@ export default function UserLeavePage() {
               </div>
 
               {/* Dates */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <label className="block text-slate-700 mb-2 text-sm font-semibold">
+                  <label className="block text-slate-700 mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold">
                     Tanggal Mulai
                   </label>
                   <input
                     type="date"
                     value={formData.start_date}
                     onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                    className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50"
+                    className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-700 mb-2 text-sm font-semibold">
+                  <label className="block text-slate-700 mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold">
                     Tanggal Selesai
                   </label>
                   <input
                     type="date"
                     value={formData.end_date}
                     onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-                    className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50"
+                    className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all"
                     required
                   />
                 </div>
@@ -745,13 +745,13 @@ export default function UserLeavePage() {
 
               {/* Reason */}
               <div>
-                <label className="block text-slate-700 mb-2 text-sm font-semibold">
+                <label className="block text-slate-700 mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold">
                   Alasan
                 </label>
                 <textarea
                   value={formData.reason}
                   onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-                  className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50"
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all resize-none"
                   rows={4}
                   placeholder="Jelaskan alasan pengajuan izin Anda..."
                   required
@@ -759,11 +759,11 @@ export default function UserLeavePage() {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 sm:pt-4">
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all text-sm sm:text-base flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-bold py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all text-sm sm:text-base flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? (
                     <>
@@ -783,7 +783,7 @@ export default function UserLeavePage() {
                   type="button"
                   onClick={() => setShowFormModal(false)}
                   disabled={loading}
-                  className="flex-1 sm:flex-none bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 px-6 rounded-xl border border-slate-300 transition-all text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg sm:rounded-xl border border-slate-300 transition-all text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Batal
                 </button>
