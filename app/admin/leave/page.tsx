@@ -6,6 +6,7 @@ import Image from 'next/image';
 import AdminSidebar, { SidebarToggleButton } from '@/components/AdminSidebar';
 import SuccessNotification from '@/components/SuccessNotification';
 import ErrorNotification from '@/components/ErrorNotification';
+import ConfirmationModal from '@/components/ConfirmationModal';
 import SkeletonCard from '@/components/SkeletonCard';
 import { cachedFetch } from '@/lib/utils/apiCache';
 
@@ -51,6 +52,14 @@ export default function LeaveRequestPage() {
     type: 'success' | 'error';
     message: string;
   }>({ show: false, type: 'success', message: '' });
+  const [confirmApprove, setConfirmApprove] = useState<{
+    show: boolean;
+    request: LeaveRequest | null;
+  }>({ show: false, request: null });
+  const [confirmReject, setConfirmReject] = useState<{
+    show: boolean;
+    request: LeaveRequest | null;
+  }>({ show: false, request: null });
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -101,14 +110,18 @@ export default function LeaveRequestPage() {
     router.push('/');
   };
 
-  const handleApprove = async (id: string) => {
-    if (!user) {
-      setNotification({ show: true, type: 'error', message: 'Data admin tidak ditemukan' });
+  const handleApproveClick = (request: LeaveRequest) => {
+    setConfirmApprove({ show: true, request });
+  };
+
+  const handleApproveConfirm = async (notes?: string) => {
+    const request = confirmApprove.request;
+    if (!request || !user) {
+      setConfirmApprove({ show: false, request: null });
       return;
     }
 
-    const notes = prompt('Catatan (opsional):');
-    if (notes === null) return; // User cancelled
+    setConfirmApprove({ show: false, request: null });
 
     try {
       setLoading(true);
@@ -118,9 +131,9 @@ export default function LeaveRequestPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          id,
+          id: request.id,
           status: 'approved',
-          admin_notes: notes || null,
+          admin_notes: notes && notes.trim() ? notes.trim() : null,
           reviewed_by: user.id,
         }),
       });
@@ -142,14 +155,18 @@ export default function LeaveRequestPage() {
     }
   };
 
-  const handleReject = async (id: string) => {
-    if (!user) {
-      setNotification({ show: true, type: 'error', message: 'Data admin tidak ditemukan' });
+  const handleRejectClick = (request: LeaveRequest) => {
+    setConfirmReject({ show: true, request });
+  };
+
+  const handleRejectConfirm = async (notes?: string) => {
+    const request = confirmReject.request;
+    if (!request || !user) {
+      setConfirmReject({ show: false, request: null });
       return;
     }
 
-    const notes = prompt('Alasan penolakan (opsional):');
-    if (notes === null) return; // User cancelled
+    setConfirmReject({ show: false, request: null });
 
     try {
       setLoading(true);
@@ -159,9 +176,9 @@ export default function LeaveRequestPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          id,
+          id: request.id,
           status: 'rejected',
-          admin_notes: notes || null,
+          admin_notes: notes && notes.trim() ? notes.trim() : null,
           reviewed_by: user.id,
         }),
       });
@@ -551,7 +568,7 @@ export default function LeaveRequestPage() {
                       {request.status === 'pending' ? (
                         <>
                           <button
-                            onClick={() => handleApprove(request.id)}
+                            onClick={() => handleApproveClick(request)}
                             className="px-2.5 py-1.5 bg-green-50 hover:bg-green-100 border border-green-200 rounded-md text-green-600 hover:text-green-700 text-xs font-semibold transition-all flex items-center justify-center gap-1"
                             title="Setujui"
                           >
@@ -561,7 +578,7 @@ export default function LeaveRequestPage() {
                             <span>Setujui</span>
                           </button>
                           <button
-                            onClick={() => handleReject(request.id)}
+                            onClick={() => handleRejectClick(request)}
                             className="px-2.5 py-1.5 bg-red-50 hover:bg-red-100 border border-red-200 rounded-md text-red-600 hover:text-red-700 text-xs font-semibold transition-all flex items-center justify-center gap-1 col-span-2"
                             title="Tolak"
                           >
@@ -738,7 +755,7 @@ export default function LeaveRequestPage() {
               <div className="p-3 sm:p-4 bg-white border-t border-slate-200">
                 <div className="flex flex-col sm:flex-row gap-2">
                   <button
-                    onClick={() => handleApprove(selectedRequest.id)}
+                    onClick={() => handleApproveClick(selectedRequest)}
                     disabled={loading}
                     className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -757,7 +774,7 @@ export default function LeaveRequestPage() {
                     )}
                   </button>
                   <button
-                    onClick={() => handleReject(selectedRequest.id)}
+                    onClick={() => handleRejectClick(selectedRequest)}
                     disabled={loading}
                     className="flex-1 bg-white hover:bg-red-50 border-2 border-red-500 text-red-600 hover:text-red-700 font-semibold py-2.5 px-4 rounded-lg transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -792,6 +809,38 @@ export default function LeaveRequestPage() {
             )}
           </div>
         </div>
+      )}
+
+      {/* Confirmation Modal for Approve */}
+      {confirmApprove.show && confirmApprove.request && (
+        <ConfirmationModal
+          isOpen={confirmApprove.show}
+          title="✅ SETUJUI PENGAJUAN IZIN"
+          message={`Apakah Anda yakin ingin menyetujui pengajuan izin ini?\n\nNama: ${confirmApprove.request.employee_name}\nKode Karyawan: ${confirmApprove.request.employee_code}\nJenis Izin: ${getTypeLabel(confirmApprove.request.leave_type).text}\nPeriode: ${formatDate(confirmApprove.request.start_date)} - ${formatDate(confirmApprove.request.end_date)}\nDurasi: ${confirmApprove.request.days} hari\nAlasan: ${confirmApprove.request.reason}`}
+          confirmText="Ya, Setujui"
+          cancelText="Batal"
+          showNotesInput={true}
+          notesLabel="Catatan"
+          notesPlaceholder="Masukkan catatan untuk karyawan (opsional)"
+          onConfirm={handleApproveConfirm}
+          onCancel={() => setConfirmApprove({ show: false, request: null })}
+        />
+      )}
+
+      {/* Confirmation Modal for Reject */}
+      {confirmReject.show && confirmReject.request && (
+        <ConfirmationModal
+          isOpen={confirmReject.show}
+          title="❌ TOLAK PENGAJUAN IZIN"
+          message={`Apakah Anda yakin ingin menolak pengajuan izin ini?\n\nNama: ${confirmReject.request.employee_name}\nKode Karyawan: ${confirmReject.request.employee_code}\nJenis Izin: ${getTypeLabel(confirmReject.request.leave_type).text}\nPeriode: ${formatDate(confirmReject.request.start_date)} - ${formatDate(confirmReject.request.end_date)}\nDurasi: ${confirmReject.request.days} hari\nAlasan: ${confirmReject.request.reason}\n\n⚠️ Tindakan ini tidak dapat dibatalkan!`}
+          confirmText="Ya, Tolak"
+          cancelText="Batal"
+          showNotesInput={true}
+          notesLabel="Alasan Penolakan"
+          notesPlaceholder="Masukkan alasan penolakan (opsional)"
+          onConfirm={handleRejectConfirm}
+          onCancel={() => setConfirmReject({ show: false, request: null })}
+        />
       )}
 
       {/* Notifications */}

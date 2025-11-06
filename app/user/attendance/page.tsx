@@ -406,9 +406,11 @@ export default function AttendancePage() {
         return;
       }
 
-      // Get system settings untuk mendapatkan GPS radius maksimal
+      // Get system settings untuk mendapatkan GPS radius maksimal dan threshold fresh
       const systemSettings = await getSystemSettings();
-      const threshold = verificationResult.threshold || 80;
+      // 🔥 CRITICAL: Gunakan threshold fresh dari system_settings, bukan dari verificationResult
+      // Ini memastikan threshold selalu konsisten dengan pengaturan terbaru
+      const threshold = systemSettings.faceThreshold;
 
       if (isCheckOut) {
         const response = await fetch('/api/attendance/check-out', {

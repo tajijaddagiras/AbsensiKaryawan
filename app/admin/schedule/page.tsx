@@ -1309,7 +1309,7 @@ export default function SchedulePolicyPage() {
           message={`Apakah Anda yakin ingin menghapus hari libur "${confirmDeleteHoliday.holiday.name}"?\n\nData yang dihapus tidak dapat dikembalikan!`}
           confirmText="Ya, Hapus"
           cancelText="Batal"
-          onConfirm={handleDeleteHolidayConfirm}
+          onConfirm={() => handleDeleteHolidayConfirm()}
           onCancel={() => setConfirmDeleteHoliday({ show: false, holiday: null })}
         />
       )}
@@ -1322,7 +1322,7 @@ export default function SchedulePolicyPage() {
           message={`Apakah Anda yakin ingin menghapus kebijakan "${confirmDeletePolicy.policy.title}"?\n\nData yang dihapus tidak dapat dikembalikan!`}
           confirmText="Ya, Hapus"
           cancelText="Batal"
-          onConfirm={handleDeletePolicyConfirm}
+          onConfirm={() => handleDeletePolicyConfirm()}
           onCancel={() => setConfirmDeletePolicy({ show: false, policy: null })}
         />
       )}

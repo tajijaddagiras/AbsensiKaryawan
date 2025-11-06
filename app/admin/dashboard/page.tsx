@@ -406,20 +406,33 @@ export default function AdminDashboard() {
       
       // Debug logging
       if (!todaySch) {
-        console.warn('fetchKpis: No schedule found for today (day of week:', dow, ')');
+        console.warn('fetchKpis: No schedule found for today (day of week:', dow, '), using fallback default schedule');
       }
       if (attToday.length === 0) {
         console.warn('fetchKpis: No attendance records found for today');
       }
+      
+      // Fallback: Jika schedule tidak ditemukan, gunakan default schedule dengan start_time 09:00 dan tolerance 15 menit
+      // Ini memastikan semua attendance tetap dihitung meskipun schedule tidak ada
+      const defaultSchedule = {
+        start_time: '09:00',
+        late_tolerance_minutes: 15,
+        on_time_end_time: null,
+        tolerance_start_time: null,
+        tolerance_end_time: null,
+      };
+      
+      // Gunakan schedule hari ini jika ada, jika tidak gunakan default
+      const scheduleToUse = todaySch || defaultSchedule;
       
       for (const a of attToday) {
         if (!a.check_in_time) {
           console.warn('fetchKpis: Attendance record without check_in_time:', a.id);
           continue;
         }
-        if (!todaySch) continue;
         
-        const category = classifyAttendanceTime(new Date(a.check_in_time), todaySch);
+        // Gunakan schedule (baik todaySch atau default) untuk mengklasifikasi
+        const category = classifyAttendanceTime(new Date(a.check_in_time), scheduleToUse);
         if (category === 'onTime') onTime++;
         else if (category === 'within') withinTol++;
         else beyondTol++;
@@ -839,43 +852,62 @@ export default function AdminDashboard() {
                   <div className="h-48 flex items-center justify-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
                   </div>
-                ) : (
-                  <ResponsiveContainer width="100%" height={180}>
-                    <PieChart>
-                      <Pie
-                        data={[
-                          { name: 'Tepat Waktu', value: kpiToday.onTime, color: '#10b981' },
-                          { name: 'Dalam Toleransi', value: kpiToday.withinTolerance, color: '#3b82f6' },
-                          { name: 'Lewat Toleransi', value: kpiToday.lateBeyond, color: '#f59e0b' },
-                          { name: 'Izin', value: kpiToday.leaveCount, color: '#64748b' },
-                        ]}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={50}
-                        outerRadius={70}
-                        paddingAngle={2}
-                        dataKey="value"
-                      >
-                        {[
-                          { name: 'Tepat Waktu', value: kpiToday.onTime, color: '#10b981' },
-                          { name: 'Dalam Toleransi', value: kpiToday.withinTolerance, color: '#3b82f6' },
-                          { name: 'Lewat Toleransi', value: kpiToday.lateBeyond, color: '#f59e0b' },
-                          { name: 'Izin', value: kpiToday.leaveCount, color: '#64748b' },
-                        ].map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: '#fff', 
-                          border: '1px solid #e2e8f0', 
-                          borderRadius: '8px',
-                          fontSize: '12px'
-                        }}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                )}
+                ) : (() => {
+                  // Filter data: hanya render segment dengan value > 0 untuk menghindari segment kosong
+                  // Urutan sesuai dengan yang ditentukan: Tepat Waktu (hijau), Dalam Toleransi (biru), Lewat Toleransi (kuning), Izin (abu-abu)
+                  // IMPORTANT: Recharts menggunakan property 'fill' bukan 'color', jadi kita set keduanya
+                  const attendanceData = [
+                    { name: 'Tepat Waktu', value: kpiToday.onTime, fill: '#10b981', color: '#10b981' },
+                    { name: 'Dalam Toleransi', value: kpiToday.withinTolerance, fill: '#3b82f6', color: '#3b82f6' },
+                    { name: 'Lewat Toleransi', value: kpiToday.lateBeyond, fill: '#f59e0b', color: '#f59e0b' },
+                    { name: 'Izin', value: kpiToday.leaveCount, fill: '#64748b', color: '#64748b' },
+                  ].filter(item => item.value > 0); // Hanya render segment dengan value > 0
+
+                  // Jika tidak ada data, tampilkan pesan
+                  if (attendanceData.length === 0) {
+                    return (
+                      <div className="h-48 flex items-center justify-center text-slate-400">
+                        <div className="text-center">
+                          <svg className="w-12 h-12 mx-auto mb-2 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                          </svg>
+                          <p className="text-sm">Belum ada data kehadiran</p>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <ResponsiveContainer width="100%" height={180}>
+                      <PieChart>
+                        <Pie
+                          data={attendanceData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={50}
+                          outerRadius={70}
+                          paddingAngle={0}
+                          dataKey="value"
+                          startAngle={90}
+                          endAngle={-270}
+                        >
+                          {attendanceData.map((entry, index) => (
+                            <Cell key={`cell-${entry.name}-${index}`} fill={entry.fill} />
+                          ))}
+                        </Pie>
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: '#fff', 
+                            border: '1px solid #e2e8f0', 
+                            borderRadius: '8px',
+                            fontSize: '12px'
+                          }}
+                          formatter={(value: any, name: any) => [`${value}`, name]}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  );
+                })()}
                 <div className="grid grid-cols-2 gap-2 mt-3 text-xs">
                   <div className="flex items-center gap-1.5">
                     <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>

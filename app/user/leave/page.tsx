@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import UserSidebar, { SidebarToggleButton } from '@/components/UserSidebar';
 import SuccessNotification from '@/components/SuccessNotification';
 import ErrorNotification from '@/components/ErrorNotification';
@@ -30,6 +31,8 @@ export default function UserLeavePage() {
   const [user, setUser] = useState<any>(null);
   const [employee, setEmployee] = useState<any>(null);
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
+  const [selectedRequest, setSelectedRequest] = useState<LeaveRequest | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   const [showFormModal, setShowFormModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -208,6 +211,24 @@ export default function UserLeavePage() {
       default:
         return { icon: '●', text: status, bgClass: 'bg-gray-500 text-white' };
     }
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <span className="px-3 py-1 bg-yellow-500/20 text-yellow-400 text-xs rounded-full border border-yellow-500/30 font-semibold">⏳ Menunggu</span>;
+      case 'approved':
+        return <span className="px-3 py-1 bg-green-500/20 text-green-400 text-xs rounded-full border border-green-500/30 font-semibold">✅ Disetujui</span>;
+      case 'rejected':
+        return <span className="px-3 py-1 bg-red-500/20 text-red-400 text-xs rounded-full border border-red-500/30 font-semibold">❌ Ditolak</span>;
+      default:
+        return <span className="px-3 py-1 bg-gray-500/20 text-gray-400 text-xs rounded-full border border-gray-500/30 font-semibold">{status}</span>;
+    }
+  };
+
+  const handleViewDetail = (request: LeaveRequest) => {
+    setSelectedRequest(request);
+    setShowDetailModal(true);
   };
 
   const formatDate = (dateString: string) => {
@@ -460,6 +481,21 @@ export default function UserLeavePage() {
                           </p>
                         )}
                       </div>
+
+                      {/* Action Buttons - Detail Button */}
+                      <div className="pt-2 border-t border-slate-100">
+                        <button
+                          onClick={() => handleViewDetail(request)}
+                          className="w-full px-2.5 py-1.5 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-md text-purple-600 hover:text-purple-700 text-xs font-semibold transition-all flex items-center justify-center gap-1"
+                          title="Detail"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                          <span>Detail</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );
@@ -468,6 +504,167 @@ export default function UserLeavePage() {
           )}
         </div>
       </div>
+
+      {/* Detail Modal - Compact & Professional */}
+      {showDetailModal && selectedRequest && employee && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4" onClick={() => setShowDetailModal(false)}>
+          <div className="bg-white rounded-xl sm:rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden animate-fadeIn" onClick={(e) => e.stopPropagation()}>
+            {/* Header - Compact */}
+            <div className="bg-gradient-to-br from-purple-500 via-pink-500 to-rose-600 p-4 sm:p-5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  {employee.avatar_url ? (
+                    <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-xl border-2 border-white/40 shadow-lg flex-shrink-0 overflow-hidden">
+                      <Image 
+                        src={employee.avatar_url} 
+                        alt={employee.full_name}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 640px) 48px, 56px"
+                        unoptimized
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-white/20 backdrop-blur-sm border-2 border-white/40 flex items-center justify-center text-white font-bold text-base sm:text-lg shadow-lg flex-shrink-0">
+                      {employee.full_name.substring(0, 2).toUpperCase()}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-base sm:text-lg font-bold text-white truncate">{employee.full_name}</h2>
+                    <p className="text-xs text-white/80 truncate">{employee.employee_code}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowDetailModal(false)}
+                  className="text-white/70 hover:text-white hover:bg-white/20 p-2 rounded-lg transition-all flex-shrink-0"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Content - Compact */}
+            <div className="p-4 sm:p-5 bg-slate-50 space-y-3 max-h-[65vh] overflow-y-auto custom-scrollbar">
+              {/* Status & Type */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-white rounded-lg p-3 border border-slate-200">
+                  <p className="text-xs text-slate-500 font-medium mb-1.5">Status</p>
+                  {getStatusBadge(selectedRequest.status)}
+                </div>
+                <div className="bg-white rounded-lg p-3 border border-slate-200">
+                  <p className="text-xs text-slate-500 font-medium mb-1.5">Jenis Izin</p>
+                  <p className="text-sm font-semibold text-slate-900">{getTypeLabel(selectedRequest.leave_type).text}</p>
+                </div>
+              </div>
+
+              {/* Period & Duration */}
+              <div className="bg-white rounded-lg p-3 sm:p-4 border border-slate-200">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-6 h-6 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg className="w-3.5 h-3.5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <p className="text-xs text-slate-500 font-semibold">Periode</p>
+                    </div>
+                    <p className="text-sm font-bold text-slate-900 mb-0.5">{formatDate(selectedRequest.start_date)}</p>
+                    <p className="text-xs text-slate-500">{formatDate(selectedRequest.end_date)}</p>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-6 h-6 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg className="w-3.5 h-3.5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <p className="text-xs text-slate-500 font-semibold">Durasi</p>
+                    </div>
+                    <p className="text-xl sm:text-2xl font-bold text-slate-900">{selectedRequest.days}</p>
+                    <p className="text-xs text-slate-500">hari</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Reason */}
+              <div className="bg-white rounded-lg p-3 border border-slate-200">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <svg className="w-4 h-4 text-purple-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <p className="text-xs text-slate-500 font-semibold">Alasan</p>
+                </div>
+                <p className="text-sm text-slate-700">{selectedRequest.reason}</p>
+              </div>
+
+              {/* Admin Notes (if reviewed) */}
+              {selectedRequest.admin_notes && (
+                <div className="bg-indigo-50 rounded-lg p-3 border border-indigo-200">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <svg className="w-4 h-4 text-indigo-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                    </svg>
+                    <p className="text-xs text-indigo-700 font-semibold">Catatan Admin</p>
+                  </div>
+                  <p className="text-sm text-indigo-900">{selectedRequest.admin_notes}</p>
+                  {selectedRequest.reviewed_by_name && (
+                    <p className="text-xs text-indigo-600 mt-2">— {selectedRequest.reviewed_by_name}</p>
+                  )}
+                </div>
+              )}
+
+              {/* Attachment */}
+              {selectedRequest.attachment_url && (
+                <div className="bg-white rounded-lg p-3 border border-slate-200">
+                  <div className="flex items-center gap-2 mb-2">
+                    <svg className="w-4 h-4 text-purple-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                    </svg>
+                    <p className="text-xs text-slate-500 font-semibold">Lampiran</p>
+                  </div>
+                  <a 
+                    href={selectedRequest.attachment_url} 
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-3 py-2 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-lg text-purple-600 text-xs font-medium transition-all"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span className="truncate">Lihat Lampiran</span>
+                  </a>
+                </div>
+              )}
+
+              {/* Submitted Date */}
+              <div className="bg-slate-100 rounded-lg p-3 border border-slate-200">
+                <p className="text-xs text-slate-500 mb-1">Diajukan pada</p>
+                <p className="text-sm font-semibold text-slate-700">{formatDate(selectedRequest.created_at)}</p>
+                {selectedRequest.reviewed_at && (
+                  <div className="mt-2 pt-2 border-t border-slate-200">
+                    <p className="text-xs text-slate-500 mb-0.5">Direview pada</p>
+                    <p className="text-sm font-medium text-slate-600">{formatDate(selectedRequest.reviewed_at)}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Footer - Close Button */}
+            <div className="px-6 sm:px-8 py-5 bg-white border-t border-slate-200">
+              <button
+                onClick={() => setShowDetailModal(false)}
+                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 px-6 rounded-xl transition-all"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Form Modal */}
       {showFormModal && (

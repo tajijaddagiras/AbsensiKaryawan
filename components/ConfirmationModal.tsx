@@ -9,7 +9,10 @@ interface ConfirmationModalProps {
   confirmText?: string;
   cancelText?: string;
   requireConfirmText?: string; // Teks yang harus diketik untuk konfirmasi (opsional)
-  onConfirm: () => void;
+  showNotesInput?: boolean; // Tampilkan input textarea untuk catatan (opsional)
+  notesLabel?: string; // Label untuk input catatan
+  notesPlaceholder?: string; // Placeholder untuk input catatan
+  onConfirm: (notes?: string) => void; // Callback dengan notes sebagai parameter
   onCancel: () => void;
 }
 
@@ -20,11 +23,15 @@ export default function ConfirmationModal({
   confirmText = 'Ya, Hapus',
   cancelText = 'Batal',
   requireConfirmText,
+  showNotesInput = false,
+  notesLabel = 'Catatan',
+  notesPlaceholder = 'Masukkan catatan (opsional)',
   onConfirm,
   onCancel
 }: ConfirmationModalProps) {
   const [show, setShow] = useState(false);
   const [confirmInput, setConfirmInput] = useState('');
+  const [notes, setNotes] = useState('');
 
   useEffect(() => {
     if (isOpen) {
@@ -32,6 +39,7 @@ export default function ConfirmationModal({
     } else {
       setShow(false);
       setConfirmInput(''); // Reset input saat modal ditutup
+      setNotes(''); // Reset notes saat modal ditutup
     }
   }, [isOpen]);
 
@@ -49,10 +57,12 @@ export default function ConfirmationModal({
     if (requireConfirmText && confirmInput !== requireConfirmText) {
       return; // Tidak lanjut jika teks tidak sesuai
     }
+    const notesValue = showNotesInput ? notes : undefined;
     setShow(false);
     setConfirmInput('');
+    setNotes('');
     setTimeout(() => {
-      onConfirm();
+      onConfirm(notesValue);
     }, 200);
   };
 
@@ -130,6 +140,23 @@ export default function ConfirmationModal({
                 placeholder={`Ketik "${requireConfirmText}"`}
                 className="w-full px-3 py-2.5 bg-white border-2 border-slate-200 rounded-lg focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/20 transition-all text-sm text-center font-medium"
                 autoFocus
+              />
+            </div>
+          )}
+
+          {/* Notes Input (if enabled) */}
+          {showNotesInput && (
+            <div className="w-full">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                {notesLabel} <span className="text-slate-400 font-normal">(opsional)</span>
+              </label>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder={notesPlaceholder}
+                rows={3}
+                className="w-full px-3 py-2.5 bg-white border-2 border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-sm resize-none"
+                autoFocus={!requireConfirmText}
               />
             </div>
           )}

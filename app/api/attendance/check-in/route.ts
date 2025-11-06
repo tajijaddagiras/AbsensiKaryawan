@@ -18,6 +18,111 @@ function timeToMinutes(timeStr: string): number {
   return h * 60 + m;
 }
 
+// Helper function: Calculate haversine distance between two GPS coordinates (in meters)
+function calculateHaversineDistance(
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number
+): number {
+  const R = 6371000; // Earth radius in meters
+  const φ1 = (lat1 * Math.PI) / 180;
+  const φ2 = (lat2 * Math.PI) / 180;
+  const Δφ = ((lat2 - lat1) * Math.PI) / 180;
+  const Δλ = ((lng2 - lng1) * Math.PI) / 180;
+
+  const a =
+    Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c; // Distance in meters
+}
+
+// Helper function: Validate GPS location against active office
+async function validateGPSLocation(
+  latitude: number,
+  longitude: number
+): Promise<{
+  valid: boolean;
+  error?: string;
+  office?: { name: string; latitude: number; longitude: number; id?: number };
+  distance?: number;
+  maxRadius?: number;
+}> {
+  try {
+    // Fetch active office location first (to get radius from office location)
+    const { data: officeData, error: officeError } = await supabaseServer
+      .from('office_locations')
+      .select('*')
+      .eq('is_active', true)
+      .single();
+
+    if (officeError || !officeData) {
+      return { valid: false, error: 'Tidak ada lokasi kantor aktif' };
+    }
+
+    // Determine maxRadius: use radius from office location if available and valid, otherwise use system settings
+    let maxRadius: number;
+    
+    // Check if office location has a valid radius (greater than 0)
+    if (officeData.radius && typeof officeData.radius === 'number' && officeData.radius > 0) {
+      // Use radius from office location (priority)
+      maxRadius = officeData.radius;
+    } else {
+      // Fallback: Fetch GPS radius from system settings
+      const { data: settingsData, error: settingsError } = await supabaseServer
+        .from('system_settings')
+        .select('setting_value')
+        .eq('setting_key', 'gps_accuracy_radius')
+        .single();
+
+      if (settingsError) {
+        return { valid: false, error: 'Gagal mengambil pengaturan GPS radius' };
+      }
+
+      maxRadius = parseInt(settingsData?.setting_value || '3000');
+    }
+
+    // Calculate distance
+    const distance = calculateHaversineDistance(
+      latitude,
+      longitude,
+      officeData.latitude,
+      officeData.longitude
+    );
+
+    if (distance > maxRadius) {
+      return {
+        valid: false,
+        error: `Anda berada di luar jangkauan kantor (jarak: ${distance.toFixed(0)}m, maksimal: ${maxRadius}m)`,
+        office: {
+          name: officeData.name,
+          latitude: officeData.latitude,
+          longitude: officeData.longitude,
+          id: officeData.id,
+        },
+        distance: distance,
+        maxRadius: maxRadius,
+      };
+    }
+
+    return {
+      valid: true,
+      office: {
+        name: officeData.name,
+        latitude: officeData.latitude,
+        longitude: officeData.longitude,
+        id: officeData.id,
+      },
+      distance: distance,
+      maxRadius: maxRadius,
+    };
+  } catch (error: any) {
+    return { valid: false, error: 'Gagal memvalidasi lokasi GPS' };
+  }
+}
+
 // POST /api/attendance/check-in - Check-in with face recognition + smart validation
 export async function POST(request: NextRequest) {
   try {
@@ -40,8 +145,49 @@ export async function POST(request: NextRequest) {
 
     if (!employee || !employee.is_active) {
       return NextResponse.json(
-        { success: false, error: 'Employee not found or inactive' },
+        { success: false, error: 'Karyawan tidak ditemukan atau tidak aktif' },
         { status: 404 }
+      );
+    }
+
+    // VALIDATE LATITUDE AND LONGITUDE (NOT NULL AND VALID RANGE)
+    if (latitude === null || latitude === undefined || longitude === null || longitude === undefined) {
+      return NextResponse.json(
+        { success: false, error: 'Lokasi GPS tidak tersedia. Pastikan GPS pada perangkat Anda aktif.' },
+        { status: 400 }
+      );
+    }
+
+    // Validate latitude range (-90 to 90)
+    if (typeof latitude !== 'number' || latitude < -90 || latitude > 90) {
+      return NextResponse.json(
+        { success: false, error: 'Koordinat latitude tidak valid' },
+        { status: 400 }
+      );
+    }
+
+    // Validate longitude range (-180 to 180)
+    if (typeof longitude !== 'number' || longitude < -180 || longitude > 180) {
+      return NextResponse.json(
+        { success: false, error: 'Koordinat longitude tidak valid' },
+        { status: 400 }
+      );
+    }
+
+    // VALIDATE GPS LOCATION (BACKEND VALIDATION)
+    const gpsValidation = await validateGPSLocation(latitude, longitude);
+    if (!gpsValidation.valid) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: gpsValidation.error || 'Lokasi tidak sesuai',
+          details: {
+            distance: gpsValidation.distance,
+            maxRadius: gpsValidation.maxRadius,
+            office: gpsValidation.office?.name,
+          },
+        },
+        { status: 400 }
       );
     }
 
@@ -246,6 +392,9 @@ export async function POST(request: NextRequest) {
     }
 
     // 6. INSERT CHECK-IN RECORD (use server UTC time, but based on Jakarta calculation)
+    // Use office_location_id from GPS validation if location_id not provided
+    const finalLocationId = location_id || gpsValidation.office?.id || null;
+
     const { data, error } = await supabaseServer
       .from('attendance')
       .insert({
@@ -253,7 +402,7 @@ export async function POST(request: NextRequest) {
         check_in_time: now.toISOString(), // Store as UTC in database
         check_in_latitude: latitude,
         check_in_longitude: longitude,
-        office_location_id: location_id,
+        office_location_id: finalLocationId,
         face_match_score,
         status,
         notes: notes || null
@@ -261,7 +410,16 @@ export async function POST(request: NextRequest) {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Gagal menyimpan data check-in',
+          details: error.message,
+        },
+        { status: 500 }
+      );
+    }
 
     // 7. RETURN SUCCESS WITH DETAILED MESSAGE
     let message = '✅ Check-in berhasil!';
@@ -278,12 +436,24 @@ export async function POST(request: NextRequest) {
         statusDetail,
         lateDuration,
         workSchedule: `${scheduleData.start_time} - ${scheduleData.end_time}`,
-        lateToleranceMinutes: scheduleData.late_tolerance_minutes
+        lateToleranceMinutes: scheduleData.late_tolerance_minutes,
+        location: {
+          office: gpsValidation.office?.name,
+          distance: gpsValidation.distance?.toFixed(0) + 'm',
+          maxRadius: gpsValidation.maxRadius + 'm',
+        },
       }
     });
   } catch (error: any) {
+    // Better error handling with more informative messages
+    console.error('Check-in error:', error);
+
     return NextResponse.json(
-      { success: false, error: error.message },
+      {
+        success: false,
+        error: 'Terjadi kesalahan sistem saat melakukan check-in',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      },
       { status: 500 }
     );
   }

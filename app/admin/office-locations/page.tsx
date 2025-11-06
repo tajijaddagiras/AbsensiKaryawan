@@ -794,7 +794,7 @@ export default function OfficeLocationsPage() {
           message={`Apakah Anda yakin ingin menghapus lokasi "${confirmDelete.location.name}"?\n\nData yang dihapus tidak dapat dikembalikan!`}
           confirmText="Ya, Hapus"
           cancelText="Batal"
-          onConfirm={handleDeleteConfirm}
+          onConfirm={() => handleDeleteConfirm()}
           onCancel={() => setConfirmDelete({ show: false, location: null })}
         />
       )}

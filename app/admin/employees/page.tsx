@@ -935,7 +935,7 @@ export default function EmployeesPage() {
           confirmText="Ya, Hapus Permanen"
           cancelText="Batal"
           requireConfirmText="HAPUS"
-          onConfirm={handleDeleteConfirm}
+          onConfirm={() => handleDeleteConfirm()}
           onCancel={() => setConfirmDelete({ show: false, employee: null })}
         />
       )}
@@ -948,7 +948,7 @@ export default function EmployeesPage() {
           message={`Apakah Anda yakin ingin ${confirmToggle.employee.is_active ? 'menonaktifkan' : 'mengaktifkan'} karyawan ini?\n\nNama: ${confirmToggle.employee.full_name}\nEmail: ${confirmToggle.employee.email}\nStatus Saat Ini: ${confirmToggle.employee.is_active ? 'AKTIF' : 'NON-AKTIF'}\nStatus Baru: ${confirmToggle.employee.is_active ? 'NON-AKTIF' : 'AKTIF'}`}
           confirmText={confirmToggle.employee.is_active ? 'Ya, Nonaktifkan' : 'Ya, Aktifkan'}
           cancelText="Batal"
-          onConfirm={handleToggleConfirm}
+          onConfirm={() => handleToggleConfirm()}
           onCancel={() => setConfirmToggle({ show: false, employee: null })}
         />
       )}
