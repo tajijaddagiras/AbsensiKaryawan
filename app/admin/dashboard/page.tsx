@@ -125,11 +125,13 @@ export default function AdminDashboard() {
         const totalEmployees = employeesData.data.length;
         const activeEmployees = employeesData.data.filter((e: any) => e.is_active).length;
         const todaysAttendance = attendanceData.data.length;
-        const pendingCheckouts = attendanceData.data.filter((a: any) => !a.check_out_time).length;
+        const pendingCheckouts = attendanceData.data.filter((a: any) => !a.checkOutTime).length;
         
         const onTimeToday = attendanceData.data.filter((a: any) => {
-          if (!a.check_in_time) return false;
-          const checkInTime = new Date(a.check_in_time).getHours() * 60 + new Date(a.check_in_time).getMinutes();
+          if (!a.checkInTime) return false;
+          const d = new Date(a.checkInTime);
+          if (Number.isNaN(d.getTime())) return false;
+          const checkInTime = d.getHours() * 60 + d.getMinutes();
           const workStartTime = 9 * 60;
           return checkInTime <= workStartTime;
         }).length;
@@ -149,7 +151,7 @@ export default function AdminDashboard() {
         setEmployeesMap(empMap);
 
         const employeesWithAttendance = employeesData.data.map((emp: any) => {
-          const attendance = attendanceData.data.find((att: any) => att.employee_id === emp.id);
+          const attendance = attendanceData.data.find((att: any) => att.employeeId === emp.id);
           return {
             ...emp,
             attendance: attendance || null,
@@ -173,10 +175,13 @@ export default function AdminDashboard() {
         } catch {}
         
         const classified = attendanceData.data.map((a: any) => {
-          const emp = empMap[a.employee_id] || {};
+          const emp = empMap[a.employeeId] || {};
           let category: 'onTime' | 'within' | 'beyond' = 'onTime';
-          if (a.check_in_time && todayScheduleLocal) {
-            category = classifyAttendanceTime(new Date(a.check_in_time), todayScheduleLocal);
+          if (a.checkInTime && todayScheduleLocal) {
+            const d = new Date(a.checkInTime);
+            if (!Number.isNaN(d.getTime())) {
+              category = classifyAttendanceTime(d, todayScheduleLocal);
+            }
           }
           return { ...a, employee: emp, _category: category };
         });
@@ -209,8 +214,8 @@ export default function AdminDashboard() {
           // Combine and sort all activities consistently
           const allActivities = [...classified, ...lr];
           const sorted = allActivities.sort((a: any, b: any) => {
-            const timeA = new Date(a.check_in_time || a.created_at || 0).getTime();
-            const timeB = new Date(b.check_in_time || b.created_at || 0).getTime();
+            const timeA = new Date(a.checkInTime || a.created_at || 0).getTime();
+            const timeB = new Date(b.checkInTime || b.created_at || 0).getTime();
             return timeB - timeA; // Descending order (newest first)
           });
           
@@ -221,8 +226,8 @@ export default function AdminDashboard() {
           setLeavesToday([]);
           // Sort classified activities consistently
           const sorted = classified.sort((a: any, b: any) => {
-            const timeA = new Date(a.check_in_time || 0).getTime();
-            const timeB = new Date(b.check_in_time || 0).getTime();
+            const timeA = new Date(a.checkInTime || 0).getTime();
+            const timeB = new Date(b.checkInTime || 0).getTime();
             return timeB - timeA; // Descending order (newest first)
           });
           setRecentActivities(sorted.slice(0, 20));
@@ -426,13 +431,15 @@ export default function AdminDashboard() {
       const scheduleToUse = todaySch || defaultSchedule;
       
       for (const a of attToday) {
-        if (!a.check_in_time) {
-          console.warn('fetchKpis: Attendance record without check_in_time:', a.id);
+        if (!a.checkInTime) {
+          console.warn('fetchKpis: Attendance record without checkInTime:', a.id);
           continue;
         }
         
+        const d = new Date(a.checkInTime);
+        if (Number.isNaN(d.getTime())) continue;
         // Gunakan schedule (baik todaySch atau default) untuk mengklasifikasi
-        const category = classifyAttendanceTime(new Date(a.check_in_time), scheduleToUse);
+        const category = classifyAttendanceTime(d, scheduleToUse);
         if (category === 'onTime') onTime++;
         else if (category === 'within') withinTol++;
         else beyondTol++;
@@ -483,8 +490,8 @@ export default function AdminDashboard() {
       const jakartaTodayStr = getJakartaDateStr(jakartaDate);
       const jakartaWeekAgoStr = getJakartaDateStr(jakartaWeekAgo);
       const history = (histData?.data || []).filter((a: any) => {
-        if (!a.check_in_time) return false;
-        const attDate = new Date(a.check_in_time);
+        if (!a.checkInTime) return false;
+        const attDate = new Date(a.checkInTime);
         const attJakartaStr = getJakartaDateStr(attDate);
         return attJakartaStr >= jakartaWeekAgoStr && attJakartaStr <= jakartaTodayStr;
       });
@@ -505,10 +512,10 @@ export default function AdminDashboard() {
       // Use Jakarta date strings for unique employee-day tracking
       const uniqueEmpDay = new Set<string>();
       for (const a of history) {
-        if (!a.check_in_time) continue;
-        const attDate = new Date(a.check_in_time);
+        if (!a.checkInTime) continue;
+        const attDate = new Date(a.checkInTime);
         const attJakartaStr = getJakartaDateStr(attDate);
-        uniqueEmpDay.add(`${a.employee_id}-${attJakartaStr}`);
+        uniqueEmpDay.add(`${a.employeeId}-${attJakartaStr}`);
       }
       const denom = activeEmployees.length * workingDays || 1;
       const presencePercent = Math.max(0, Math.min(100, Math.round((uniqueEmpDay.size / denom) * 100)));
@@ -516,8 +523,8 @@ export default function AdminDashboard() {
       // avgLateMinutes over week (only positive lateness) - use Jakarta timezone
       let lateMinsTotal = 0, lateCount = 0;
       for (const a of history) {
-        if (!a.check_in_time) continue;
-        const attDate = new Date(a.check_in_time);
+        if (!a.checkInTime) continue;
+        const attDate = new Date(a.checkInTime);
         const attDow = getJakartaDow(attDate);
         const s = schedulesData?.data?.find((x: any) => x.day_of_week === attDow && x.is_active);
         if (!s) continue;
@@ -559,8 +566,8 @@ export default function AdminDashboard() {
         if (isWorkingDay) {
           // Count attendance for this day
           const dayAttendance = history.filter((a: any) => {
-            if (!a.check_in_time) return false;
-            const attDate = new Date(a.check_in_time);
+            if (!a.checkInTime) return false;
+            const attDate = new Date(a.checkInTime);
             const attDateStr = getJakartaDateStr(attDate);
             return attDateStr === targetDateStr;
           });
@@ -604,6 +611,7 @@ export default function AdminDashboard() {
   const formatTime = (dateString: string) => {
     if (!dateString) return '-';
     const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return '-';
     return date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
   };
 
@@ -616,7 +624,7 @@ export default function AdminDashboard() {
         </span>
       );
     }
-    if (attendance.check_out_time) {
+    if (attendance.checkOutTime) {
       return (
         <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-md">
           <span>✓</span>
@@ -1036,7 +1044,7 @@ export default function AdminDashboard() {
                         {/* Time & Status */}
                         <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1 sm:gap-2 flex-shrink-0">
                           <div className="text-right">
-                            <p className="text-xs font-semibold text-slate-900">{emp.attendance ? formatTime(emp.attendance.check_in_time) : '-'}</p>
+                            <p className="text-xs font-semibold text-slate-900">{emp.attendance ? formatTime(emp.attendance.checkInTime) : '-'}</p>
                           </div>
                           {getStatusBadge(emp.attendance)}
                         </div>
@@ -1107,7 +1115,9 @@ export default function AdminDashboard() {
                         {/* Right: time + badge */}
                         <div className="flex items-center justify-between sm:justify-end gap-2 flex-shrink-0 w-full sm:w-auto">
                           <span className="text-xs text-slate-600 font-semibold">
-                            {activity._category === 'leave' ? (activity.created_at ? formatTime(activity.created_at) : '-') : (activity.check_in_time ? formatTime(activity.check_in_time) : '-')}
+                            {activity._category === 'leave'
+                              ? (activity.created_at ? formatTime(activity.created_at) : '-')
+                              : (activity.checkInTime ? formatTime(activity.checkInTime) : '-')}
                           </span>
                           <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold ${
                             activity._category === 'onTime' ? 'bg-green-100 text-green-700' :

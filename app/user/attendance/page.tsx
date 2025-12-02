@@ -549,6 +549,9 @@ export default function AttendancePage() {
   const formatTime = (dateString: string) => {
     if (!dateString) return '-';
     const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) {
+      return '-';
+    }
     // Convert to Asia/Jakarta timezone and format as 24-hour (HH:MM)
     const jakartaDate = new Date(date.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
     const hours = String(jakartaDate.getHours()).padStart(2, '0');
@@ -570,12 +573,15 @@ export default function AttendancePage() {
     statusColor: string;
     statusBg: string;
   } => {
-    if (!checkInTime || !schedule) {
+    if (!checkInTime || !schedule || !checkInTime.includes(':')) {
       return { status: 'on_time', statusLabel: 'Tepat Waktu', statusColor: 'text-green-700', statusBg: 'bg-green-100' };
     }
 
     // Parse waktu check-in
     const [checkInHour, checkInMin] = checkInTime.split(':').slice(0, 2).map(Number);
+    if (Number.isNaN(checkInHour) || Number.isNaN(checkInMin)) {
+      return { status: 'on_time', statusLabel: 'Tepat Waktu', statusColor: 'text-green-700', statusBg: 'bg-green-100' };
+    }
     const checkInMinutes = checkInHour * 60 + checkInMin;
 
     // Parse waktu jadwal
@@ -930,7 +936,7 @@ export default function AttendancePage() {
                       <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      Sudah: {formatTime(todayAttendance.check_in_time)}
+                      Sudah: {formatTime(todayAttendance.checkInTime)}
                     </p>
                   </div>
                 )}
@@ -958,7 +964,7 @@ export default function AttendancePage() {
                     setIsCheckOut(true);
                     setShowCamera(true);
                   }}
-                  disabled={!todayAttendance || todayAttendance.check_out_time || isProcessingCheckIn || isProcessingCheckOut}
+                  disabled={!todayAttendance || todayAttendance.checkOutTime || isProcessingCheckIn || isProcessingCheckOut}
                   className="w-full bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white font-semibold py-2 px-3 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md text-xs sm:text-sm flex items-center justify-center gap-1.5"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -966,13 +972,13 @@ export default function AttendancePage() {
                   </svg>
               {isProcessingCheckOut ? 'Processing...' : 'Check Out'}
             </button>
-                {todayAttendance?.check_out_time && (
+                {todayAttendance?.checkOutTime && (
                   <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-md">
                     <p className="text-[10px] text-red-700 font-semibold flex items-center gap-1">
                       <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      Sudah: {formatTime(todayAttendance.check_out_time)}
+                      Sudah: {formatTime(todayAttendance.checkOutTime)}
                     </p>
                   </div>
                 )}
@@ -993,10 +999,10 @@ export default function AttendancePage() {
 
               {/* Calculate Status */}
               {(() => {
-                const attendanceStatus = getAttendanceStatus(formatTime(todayAttendance.check_in_time), todaySchedule);
-                const checkInFormatted = formatTime(todayAttendance.check_in_time);
-                const checkOutFormatted = todayAttendance.check_out_time ? formatTime(todayAttendance.check_out_time) : '-';
-                const dateFormatted = new Date(todayAttendance.check_in_time).toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta' });
+                const attendanceStatus = getAttendanceStatus(formatTime(todayAttendance.checkInTime), todaySchedule);
+                const checkInFormatted = formatTime(todayAttendance.checkInTime);
+                const checkOutFormatted = todayAttendance.checkOutTime ? formatTime(todayAttendance.checkOutTime) : '-';
+                const dateFormatted = new Date(todayAttendance.checkInTime).toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta' });
 
                 return (
                   <>

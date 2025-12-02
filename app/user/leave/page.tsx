@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import UserSidebar, { SidebarToggleButton } from '@/components/UserSidebar';
@@ -48,6 +48,10 @@ export default function UserLeavePage() {
     end_date: '',
     reason: '',
   });
+
+  // Refs untuk input tanggal agar ikon kalender bisa memicu date picker
+  const startDateInputRef = useRef<HTMLInputElement | null>(null);
+  const endDateInputRef = useRef<HTMLInputElement | null>(null);
 
   // Lock body scroll when modals are open
   useBodyScrollLock(showDetailModal || showFormModal);
@@ -249,6 +253,20 @@ export default function UserLeavePage() {
       rejected: leaveRequests.filter(r => r.status === 'rejected').length,
     };
   }, [leaveRequests]);
+
+  // Helper untuk membuka date picker (dukungan terbaik di browser modern / Chromium)
+  const openDatePicker = (inputRef: React.RefObject<HTMLInputElement>) => {
+    const input = inputRef.current;
+    if (!input) return;
+    // @ts-ignore - showPicker belum ada di tipe standar tapi ada di Chromium
+    if (typeof input.showPicker === 'function') {
+      // @ts-ignore
+      input.showPicker();
+    } else {
+      input.focus();
+      input.click();
+    }
+  };
 
   if (initialLoading) {
     return (
@@ -729,16 +747,19 @@ export default function UserLeavePage() {
                   <div className="relative">
                     <input
                       type="date"
+                    ref={startDateInputRef}
                       value={formData.start_date}
                       onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
                       className="w-full bg-white border border-slate-300 rounded-lg shadow-sm px-3 sm:px-4 py-2.5 sm:py-3 pr-12 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/40 transition-all min-h-[3rem]"
                       required
                     />
                     <svg
-                      className="pointer-events-none absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-purple-500/70"
+                      className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-purple-500/80 cursor-pointer"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
+                      onClick={() => openDatePicker(startDateInputRef)}
+                      aria-hidden="true"
                     >
                       <path
                         strokeLinecap="round"
@@ -756,16 +777,19 @@ export default function UserLeavePage() {
                   <div className="relative">
                     <input
                       type="date"
+                    ref={endDateInputRef}
                       value={formData.end_date}
                       onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
                       className="w-full bg-white border border-slate-300 rounded-lg shadow-sm px-3 sm:px-4 py-2.5 sm:py-3 pr-12 text-sm sm:text-base text-slate-900 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/40 transition-all min-h-[3rem]"
                       required
                     />
                     <svg
-                      className="pointer-events-none absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-purple-500/70"
+                      className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-purple-500/80 cursor-pointer"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
+                      onClick={() => openDatePicker(endDateInputRef)}
+                      aria-hidden="true"
                     >
                       <path
                         strokeLinecap="round"

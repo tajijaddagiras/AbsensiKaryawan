@@ -27,17 +27,17 @@ declare module 'jspdf' {
 
 interface AttendanceRecord {
   id: string;
-  employee_id: string;
-  check_in_time: string;
-  check_out_time?: string;
-  check_in_latitude?: number;
-  check_in_longitude?: number;
+  employeeId: string;
+  checkInTime: string;
+  checkOutTime?: string;
+  checkInLatitude?: number;
+  checkInLongitude?: number;
   status: string;
-  face_match_score?: number;
+  faceMatchScore?: number;
   notes?: string | null;
   employee: {
-    full_name: string;
-    employee_code: string;
+    fullName: string;
+    employeeCode: string;
     avatar_url?: string;
   };
 }
@@ -219,8 +219,14 @@ export default function AttendancePage() {
   };
 
   // Helper function: Format date and time
-  const formatDateTime = (dateString: string) => {
+  const formatDateTime = (dateString: string | undefined | null) => {
+    if (!dateString) {
+      return { date: '-', time: '-' };
+    }
     const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) {
+      return { date: '-', time: '-' };
+    }
     return {
       date: date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
       time: date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
@@ -252,7 +258,7 @@ export default function AttendancePage() {
     toleranceRange: string;
     lateMinutes: number;
   } => {
-    if (!record.check_in_time) {
+    if (!record.checkInTime) {
       return {
         statusDetail: 'on_time',
         statusLabel: 'Tepat Waktu',
@@ -265,7 +271,7 @@ export default function AttendancePage() {
     // PRIORITAS 1: Cek status field DULU - jika status = 'late', langsung return late
     // Ini penting untuk memastikan semua record terlambat terdeteksi, termasuk yang notes-nya mungkin tidak lengkap
     if (record.status === 'late') {
-      const checkInDate = new Date(record.check_in_time);
+      const checkInDate = new Date(record.checkInTime);
       const jakartaDate = new Date(checkInDate.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
       const dayOfWeek = jakartaDate.getDay();
       const schedule = getScheduleForDay(dayOfWeek);
@@ -313,7 +319,7 @@ export default function AttendancePage() {
       // Klasifikasi dari notes - PRIORITAS: cek terlambat DULU sebelum yang lain
       if (notesLower.includes('terlambat') || notesLower.includes('late') || notesLower.includes('melewati batas') || notesLower.includes('melewati')) {
         // Get schedule untuk format range (untuk konsistensi)
-        const checkInDate = new Date(record.check_in_time);
+        const checkInDate = new Date(record.checkInTime);
         const jakartaDate = new Date(checkInDate.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
         const dayOfWeek = jakartaDate.getDay();
         const schedule = getScheduleForDay(dayOfWeek);
@@ -338,7 +344,7 @@ export default function AttendancePage() {
         };
       } else if (notesLower.includes('tepat waktu') || notesLower.includes('tepatwaktu') || notesLower.includes('tepat-waktu')) {
         // Get schedule untuk format range (jika schedule tersedia)
-        const checkInDate = new Date(record.check_in_time);
+        const checkInDate = new Date(record.checkInTime);
         const jakartaDate = new Date(checkInDate.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
         const dayOfWeek = jakartaDate.getDay();
         const schedule = getScheduleForDay(dayOfWeek);
@@ -359,7 +365,7 @@ export default function AttendancePage() {
         };
       } else if (notesLower.includes('dalam toleransi') || notesLower.includes('toleransi') || notesLower.includes('hadir dalam')) {
         // Get schedule untuk format range
-        const checkInDate = new Date(record.check_in_time);
+        const checkInDate = new Date(record.checkInTime);
         const jakartaDate = new Date(checkInDate.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
         const dayOfWeek = jakartaDate.getDay();
         const schedule = getScheduleForDay(dayOfWeek);
@@ -383,7 +389,7 @@ export default function AttendancePage() {
 
     // FALLBACK 3: Jika notes tidak ada dan status bukan 'late', hitung dari schedule (untuk data lama)
     // Get day of week dari check-in time (dalam timezone Jakarta)
-    const checkInDate = new Date(record.check_in_time);
+    const checkInDate = new Date(record.checkInTime);
     const jakartaDate = new Date(checkInDate.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
     const dayOfWeek = jakartaDate.getDay();
 
@@ -542,17 +548,17 @@ export default function AttendancePage() {
 
     // Prepare data for Excel (use filtered data dengan 11 kolom)
     const excelData = filteredAttendance.map((record, index) => {
-      const checkIn = formatDateTime(record.check_in_time);
-      const checkOut = record.check_out_time ? formatDateTime(record.check_out_time) : { date: '-', time: '-' };
+      const checkIn = formatDateTime(record.checkInTime);
+      const checkOut = record.checkOutTime ? formatDateTime(record.checkOutTime) : { date: '-', time: '-' };
       
       // Get status detail dengan schedule data
       const statusDetail = getAttendanceStatusDetail(record);
       
       // Calculate duration
       let duration = '-';
-      if (record.check_out_time) {
-        const start = new Date(record.check_in_time);
-        const end = new Date(record.check_out_time);
+      if (record.checkOutTime) {
+        const start = new Date(record.checkInTime);
+        const end = new Date(record.checkOutTime);
         const diff = end.getTime() - start.getTime();
         const hours = Math.floor(diff / (1000 * 60 * 60));
         const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
@@ -671,17 +677,17 @@ export default function AttendancePage() {
 
     // Prepare data for PDF table (11 kolom)
     const tableData = filteredAttendance.map((record, index) => {
-      const checkIn = formatDateTime(record.check_in_time);
-      const checkOut = record.check_out_time ? formatDateTime(record.check_out_time) : { date: '-', time: '-' };
+      const checkIn = formatDateTime(record.checkInTime);
+      const checkOut = record.checkOutTime ? formatDateTime(record.checkOutTime) : { date: '-', time: '-' };
       
       // Get status detail dengan schedule data
       const statusDetail = getAttendanceStatusDetail(record);
       
       // Calculate duration
       let duration = '-';
-      if (record.check_out_time) {
-        const start = new Date(record.check_in_time);
-        const end = new Date(record.check_out_time);
+      if (record.checkOutTime) {
+        const start = new Date(record.checkInTime);
+        const end = new Date(record.checkOutTime);
         const diff = end.getTime() - start.getTime();
         const hours = Math.floor(diff / (1000 * 60 * 60));
         const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
@@ -817,10 +823,10 @@ export default function AttendancePage() {
       
       const sampleRecords = filteredAttendance.slice(0, 5).map(r => ({
         id: r.id,
-        employee: r.employee.full_name,
+        employee: r.employee.fullName,
         notes: r.notes || '(null)',
         status: r.status,
-        checkInTime: r.check_in_time,
+        checkInTime: r.checkInTime,
         statusDetail: getAttendanceStatusDetail(r),
         classification: {
           hasLateStatus: r.status === 'late',
@@ -850,10 +856,10 @@ export default function AttendancePage() {
       if (lateRecords.length > 0) {
         console.log('🔍 Late Records Details:', lateRecords.map(r => ({
           id: r.id,
-          employee: r.employee.full_name,
+          employee: r.employee.fullName,
           notes: r.notes || '(null)',
           status: r.status,
-          checkInTime: r.check_in_time,
+          checkInTime: r.checkInTime,
           statusDetail: getAttendanceStatusDetail(r)
         })));
       } else {
@@ -872,7 +878,7 @@ export default function AttendancePage() {
       onTime: onTimeCount,
       withinTolerance: withinToleranceCount,
       late: lateCount,
-      checkOut: filteredAttendance.filter(a => a.check_out_time).length,
+      checkOut: filteredAttendance.filter(a => a.checkOutTime).length,
     };
   }, [filteredAttendance, schedules]);
 
@@ -1266,8 +1272,8 @@ export default function AttendancePage() {
             {filteredAttendance.map((record) => {
               // Gunakan getStatusDetailInfo untuk menampilkan status detail (Tepat Waktu, Dalam Toleransi, Terlambat)
               const statusDetailInfo = getStatusDetailInfo(record);
-              const checkIn = formatDateTime(record.check_in_time);
-              const checkOut = record.check_out_time ? formatDateTime(record.check_out_time) : null;
+              const checkIn = formatDateTime(record.checkInTime);
+              const checkOut = record.checkOutTime ? formatDateTime(record.checkOutTime) : null;
               
               return (
                 <div key={record.id} className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-slate-200 hover:shadow-lg hover:border-blue-200 transition-all overflow-hidden group">
@@ -1279,7 +1285,7 @@ export default function AttendancePage() {
                           <div className="relative w-12 h-12 sm:w-13 sm:h-13 rounded-lg border-2 border-white/30 shadow-lg flex-shrink-0 overflow-hidden">
                             <Image 
                               src={record.employee.avatar_url} 
-                              alt={record.employee.full_name || 'Employee Avatar'}
+                              alt={record.employee.fullName || 'Employee Avatar'}
                               fill
                               className="object-cover"
                               sizes="(max-width: 640px) 48px, 52px"
@@ -1288,12 +1294,12 @@ export default function AttendancePage() {
                           </div>
                         ) : (
                           <div className="w-12 h-12 sm:w-13 sm:h-13 rounded-lg bg-white/20 backdrop-blur-sm border-2 border-white/30 flex items-center justify-center text-white font-bold text-base sm:text-lg shadow-lg flex-shrink-0">
-                            {record.employee.full_name.substring(0, 2).toUpperCase()}
+                            {record.employee.fullName.substring(0, 2).toUpperCase()}
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-sm sm:text-base font-bold text-white truncate">{record.employee.full_name}</h3>
-                          <p className="text-xs text-white/80 truncate">{record.employee.employee_code}</p>
+                          <h3 className="text-sm sm:text-base font-bold text-white truncate">{record.employee.fullName}</h3>
+                          <p className="text-xs text-white/80 truncate">{record.employee.employeeCode}</p>
                         </div>
                       </div>
                       {/* Status Badge - Compact dengan style untuk gradient header */}
@@ -1425,8 +1431,8 @@ export default function AttendancePage() {
                 <div className="bg-white rounded-lg p-3 border border-slate-200">
                   <p className="text-xs text-slate-500 font-medium mb-1.5">Skor Verifikasi</p>
                   <p className="text-xl sm:text-2xl font-bold text-slate-900">
-                    {selectedRecord.face_match_score 
-                      ? `${selectedRecord.face_match_score.toFixed(1)}%`
+                    {selectedRecord.faceMatchScore != null 
+                      ? `${Number(selectedRecord.faceMatchScore).toFixed(1)}%`
                       : 'N/A'
                     }
                   </p>
@@ -1447,10 +1453,10 @@ export default function AttendancePage() {
                       <p className="text-xs text-slate-500 font-semibold">Check-In</p>
                     </div>
                     <p className="text-sm font-bold text-slate-900 mb-0.5">
-                      {formatDateTime(selectedRecord.check_in_time).time}
+                      {formatDateTime(selectedRecord.checkInTime).time}
                     </p>
                     <p className="text-xs text-slate-500">
-                      {formatDateTime(selectedRecord.check_in_time).date}
+                      {formatDateTime(selectedRecord.checkInTime).date}
                     </p>
         </div>
 
@@ -1464,13 +1470,13 @@ export default function AttendancePage() {
                       </div>
                       <p className="text-xs text-slate-500 font-semibold">Check-Out</p>
                         </div>
-                    {selectedRecord.check_out_time ? (
+                    {selectedRecord.checkOutTime ? (
                       <>
                         <p className="text-sm font-bold text-slate-900 mb-0.5">
-                          {formatDateTime(selectedRecord.check_out_time).time}
+                          {formatDateTime(selectedRecord.checkOutTime).time}
                         </p>
                         <p className="text-xs text-slate-500">
-                          {formatDateTime(selectedRecord.check_out_time).date}
+                          {formatDateTime(selectedRecord.checkOutTime).date}
                         </p>
                       </>
                     ) : (
@@ -1481,7 +1487,7 @@ export default function AttendancePage() {
         </div>
 
               {/* Location - Compact */}
-              {(selectedRecord.check_in_latitude && selectedRecord.check_in_longitude) && (
+              {(selectedRecord.checkInLatitude && selectedRecord.checkInLongitude) && (
                 <div className="bg-white rounded-lg p-3 border border-slate-200">
                   <div className="flex items-center gap-2 mb-1.5">
                     <svg className="w-4 h-4 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1491,7 +1497,7 @@ export default function AttendancePage() {
                     <p className="text-xs text-slate-500 font-semibold">Lokasi Check-In</p>
           </div>
                   <p className="text-xs text-slate-700 font-mono bg-slate-50 px-2 py-1 rounded border border-slate-200">
-                    {selectedRecord.check_in_latitude.toFixed(6)}, {selectedRecord.check_in_longitude.toFixed(6)}
+                    {Number(selectedRecord.checkInLatitude).toFixed(6)}, {Number(selectedRecord.checkInLongitude).toFixed(6)}
             </p>
           </div>
               )}
