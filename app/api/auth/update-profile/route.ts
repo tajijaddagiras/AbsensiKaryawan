@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseServer } from '@/lib/supabase';
-import crypto from 'crypto';
+import { prisma } from '@/lib/prisma';
+import * as bcrypt from 'bcryptjs';
 
 async function updateProfileHandler(request: NextRequest) {
   try {
@@ -18,13 +18,11 @@ async function updateProfileHandler(request: NextRequest) {
     }
 
     // Get user by current email
-    const { data: user, error: userError } = await supabaseServer
-      .from('app_users')
-      .select('*')
-      .eq('email', currentEmail)
-      .single();
+    const user = await prisma.user.findUnique({
+      where: { email: currentEmail },
+    });
 
-    if (userError || !user) {
+    if (!user) {
       return NextResponse.json(
         { success: false, error: 'User not found' },
         { status: 404 }
@@ -32,19 +30,17 @@ async function updateProfileHandler(request: NextRequest) {
     }
 
     // Prepare update data
-    const updateData: any = {
-      updated_at: new Date().toISOString()
-    };
+    const updateData: any = {};
 
     // Update username if provided and different
     if (usernameToUpdate && usernameToUpdate !== user.username) {
       // Check if new username is already taken
-      const { data: existingUser } = await supabaseServer
-        .from('app_users')
-        .select('id')
-        .eq('username', usernameToUpdate)
-        .neq('id', user.id)
-        .single();
+      const existingUser = await prisma.user.findFirst({
+        where: {
+          username: usernameToUpdate,
+          id: { not: user.id },
+        },
+      });
 
       if (existingUser) {
         return NextResponse.json(
@@ -59,12 +55,12 @@ async function updateProfileHandler(request: NextRequest) {
     // Update email if provided and different
     if (newEmail && newEmail !== user.email) {
       // Check if new email is already taken
-      const { data: existingEmail } = await supabaseServer
-        .from('app_users')
-        .select('id')
-        .eq('email', newEmail)
-        .neq('id', user.id)
-        .single();
+      const existingEmail = await prisma.user.findFirst({
+        where: {
+          email: newEmail,
+          id: { not: user.id },
+        },
+      });
 
       if (existingEmail) {
         return NextResponse.json(
@@ -78,7 +74,7 @@ async function updateProfileHandler(request: NextRequest) {
 
     // Update avatar if provided
     if (avatarUrl !== undefined) {
-      updateData.avatar_url = avatarUrl;
+      updateData.avatarUrl = avatarUrl;
     }
 
     // Update password if provided
@@ -91,8 +87,8 @@ async function updateProfileHandler(request: NextRequest) {
       }
 
       // Verify current password
-      const hashedCurrentPassword = crypto.createHash('md5').update(currentPassword).digest('hex');
-      if (hashedCurrentPassword !== user.password) {
+      const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+      if (!isPasswordValid) {
         return NextResponse.json(
           { success: false, error: 'Current password is incorrect' },
           { status: 401 }
@@ -100,17 +96,15 @@ async function updateProfileHandler(request: NextRequest) {
       }
 
       // Hash new password
-      const hashedNewPassword = crypto.createHash('md5').update(newPassword).digest('hex');
+      const hashedNewPassword = await bcrypt.hash(newPassword, 10);
       updateData.password = hashedNewPassword;
     }
 
     // Update user
-    const { error: updateError } = await supabaseServer
-      .from('app_users')
-      .update(updateData)
-      .eq('email', currentEmail);
-
-    if (updateError) throw updateError;
+    await prisma.user.update({
+      where: { email: currentEmail },
+      data: updateData,
+    });
 
     return NextResponse.json({
       success: true,

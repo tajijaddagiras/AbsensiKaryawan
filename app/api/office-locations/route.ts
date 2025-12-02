@@ -1,15 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseServer } from '@/lib/supabase';
+import { prisma } from '@/lib/prisma';
 
-// GET /api/office-locations - Get all office locations
+// GET /api/office-locations
 export async function GET(request: NextRequest) {
   try {
-    const { data, error } = await supabaseServer
-      .from('office_locations')
-      .select('*')
-      .order('created_at', { ascending: false });
+    const locations = await prisma.officeLocation.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
 
-    if (error) throw error;
+    // Transform to snake_case
+    const data = locations.map(loc => ({
+      id: loc.id,
+      name: loc.name,
+      address: loc.address,
+      latitude: loc.latitude,
+      longitude: loc.longitude,
+      radius: loc.radius,
+      is_active: loc.isActive,
+      created_at: loc.createdAt,
+      updated_at: loc.updatedAt,
+    }));
 
     return NextResponse.json({ 
       success: true, 
@@ -23,13 +33,12 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/office-locations - Create new office location
+// POST /api/office-locations
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { name, address, latitude, longitude, radius } = body;
 
-    // Validate required fields
     if (!name || !latitude || !longitude) {
       return NextResponse.json(
         { success: false, error: 'name, latitude, and longitude are required' },
@@ -37,21 +46,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Insert new office location
-    const { data, error } = await supabaseServer
-      .from('office_locations')
-      .insert({
+    const location = await prisma.officeLocation.create({
+      data: {
         name,
         address,
         latitude: parseFloat(latitude),
         longitude: parseFloat(longitude),
         radius: radius ? parseInt(radius) : 100,
-        is_active: true
-      })
-      .select()
-      .single();
+        isActive: true,
+      },
+    });
 
-    if (error) throw error;
+    // Transform to snake_case
+    const data = {
+      id: location.id,
+      name: location.name,
+      address: location.address,
+      latitude: location.latitude,
+      longitude: location.longitude,
+      radius: location.radius,
+      is_active: location.isActive,
+      created_at: location.createdAt,
+      updated_at: location.updatedAt,
+    };
 
     return NextResponse.json({ 
       success: true, 
@@ -64,4 +81,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

@@ -1,25 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseServer } from '@/lib/supabase';
+import { prisma } from '@/lib/prisma';
 
-// GET /api/policies - Get all policies
+// GET /api/policies
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const category = searchParams.get('category'); // Optional: filter by category
+    const category = searchParams.get('category');
 
-    let query = supabaseServer
-      .from('policies')
-      .select('*')
-      .eq('is_active', true)
-      .order('category', { ascending: true });
+    const where: any = { isActive: true };
 
     if (category) {
-      query = query.eq('category', category);
+      where.category = category;
     }
 
-    const { data, error } = await query;
-
-    if (error) throw error;
+    const data = await prisma.policy.findMany({
+      where,
+      orderBy: { category: 'asc' },
+    });
 
     return NextResponse.json({ 
       success: true, 
@@ -33,7 +30,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/policies - Create new policy
+// POST /api/policies
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -53,19 +50,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { data, error } = await supabaseServer
-      .from('policies')
-      .insert({
+    const data = await prisma.policy.create({
+      data: {
         title,
         description,
         category,
-        policy_data: policy_data || null,
-        is_active: true
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
+        policyData: policy_data || null,
+        isActive: true,
+      },
+    });
 
     return NextResponse.json({ 
       success: true, 
@@ -80,7 +73,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// PUT /api/policies - Update policy
+// PUT /api/policies
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
@@ -93,9 +86,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const updateData: any = {
-      updated_at: new Date().toISOString()
-    };
+    const updateData: any = {};
 
     if (title !== undefined) updateData.title = title;
     if (description !== undefined) updateData.description = description;
@@ -108,17 +99,13 @@ export async function PUT(request: NextRequest) {
       }
       updateData.category = category;
     }
-    if (policy_data !== undefined) updateData.policy_data = policy_data;
-    if (is_active !== undefined) updateData.is_active = is_active;
+    if (policy_data !== undefined) updateData.policyData = policy_data;
+    if (is_active !== undefined) updateData.isActive = is_active;
 
-    const { data, error } = await supabaseServer
-      .from('policies')
-      .update(updateData)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
+    const data = await prisma.policy.update({
+      where: { id },
+      data: updateData,
+    });
 
     return NextResponse.json({ 
       success: true, 
@@ -133,7 +120,7 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-// DELETE /api/policies - Delete policy
+// DELETE /api/policies
 export async function DELETE(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
@@ -146,12 +133,9 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const { error } = await supabaseServer
-      .from('policies')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
+    await prisma.policy.delete({
+      where: { id },
+    });
 
     return NextResponse.json({ 
       success: true,
@@ -164,4 +148,3 @@ export async function DELETE(request: NextRequest) {
     );
   }
 }
-

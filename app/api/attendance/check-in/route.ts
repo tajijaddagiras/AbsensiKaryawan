@@ -1,16 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseServer } from '@/lib/supabase';
+import { prisma } from '@/lib/prisma';
 
 // Force dynamic rendering - no caching
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
-
-// Helper: Calculate time difference in minutes (time2 - time1)
-function getMinutesDifference(time1: string, time2: string): number {
-  const [h1, m1] = time1.split(':').map(Number);
-  const [h2, m2] = time2.split(':').map(Number);
-  return (h2 * 60 + m2) - (h1 * 60 + m1);
-}
 
 // Helper: Convert time string to minutes from 00:00
 function timeToMinutes(timeStr: string): number {
@@ -46,50 +39,44 @@ async function validateGPSLocation(
 ): Promise<{
   valid: boolean;
   error?: string;
-  office?: { name: string; latitude: number; longitude: number; id?: number };
+  office?: { name: string; latitude: number; longitude: number; id?: string };
   distance?: number;
   maxRadius?: number;
 }> {
   try {
-    // Fetch active office location first (to get radius from office location)
-    const { data: officeData, error: officeError } = await supabaseServer
-      .from('office_locations')
-      .select('*')
-      .eq('is_active', true)
-      .single();
+    // Fetch active office location first
+    const officeData = await prisma.officeLocation.findFirst({
+      where: { isActive: true },
+    });
 
-    if (officeError || !officeData) {
+    if (!officeData) {
       return { valid: false, error: 'Tidak ada lokasi kantor aktif' };
     }
 
-    // Determine maxRadius: use radius from office location if available and valid, otherwise use system settings
+    // Determine maxRadius
     let maxRadius: number;
     
-    // Check if office location has a valid radius (greater than 0)
-    if (officeData.radius && typeof officeData.radius === 'number' && officeData.radius > 0) {
-      // Use radius from office location (priority)
+    if (officeData.radius && officeData.radius > 0) {
       maxRadius = officeData.radius;
     } else {
       // Fallback: Fetch GPS radius from system settings
-      const { data: settingsData, error: settingsError } = await supabaseServer
-        .from('system_settings')
-        .select('setting_value')
-        .eq('setting_key', 'gps_accuracy_radius')
-        .single();
+      const settingsData = await prisma.systemSetting.findUnique({
+        where: { settingKey: 'gps_accuracy_radius' },
+      });
 
-      if (settingsError) {
+      if (!settingsData) {
         return { valid: false, error: 'Gagal mengambil pengaturan GPS radius' };
       }
 
-      maxRadius = parseInt(settingsData?.setting_value || '3000');
+      maxRadius = parseInt(settingsData.settingValue || '3000');
     }
 
     // Calculate distance
     const distance = calculateHaversineDistance(
       latitude,
       longitude,
-      officeData.latitude,
-      officeData.longitude
+      Number(officeData.latitude),
+      Number(officeData.longitude)
     );
 
     if (distance > maxRadius) {
@@ -98,8 +85,8 @@ async function validateGPSLocation(
         error: `Anda berada di luar jangkauan kantor (jarak: ${distance.toFixed(0)}m, maksimal: ${maxRadius}m)`,
         office: {
           name: officeData.name,
-          latitude: officeData.latitude,
-          longitude: officeData.longitude,
+          latitude: Number(officeData.latitude),
+          longitude: Number(officeData.longitude),
           id: officeData.id,
         },
         distance: distance,
@@ -111,8 +98,8 @@ async function validateGPSLocation(
       valid: true,
       office: {
         name: officeData.name,
-        latitude: officeData.latitude,
-        longitude: officeData.longitude,
+        latitude: Number(officeData.latitude),
+        longitude: Number(officeData.longitude),
         id: officeData.id,
       },
       distance: distance,
@@ -137,20 +124,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if employee exists
-    const { data: employee } = await supabaseServer
-      .from('employees')
-      .select('id, is_active')
-      .eq('id', employee_id)
-      .single();
+    const employee = await prisma.employee.findUnique({
+      where: { id: employee_id },
+      select: { id: true, isActive: true },
+    });
 
-    if (!employee || !employee.is_active) {
+    if (!employee || !employee.isActive) {
       return NextResponse.json(
         { success: false, error: 'Karyawan tidak ditemukan atau tidak aktif' },
         { status: 404 }
       );
     }
 
-    // VALIDATE LATITUDE AND LONGITUDE (NOT NULL AND VALID RANGE)
+    // VALIDATE LATITUDE AND LONGITUDE
     if (latitude === null || latitude === undefined || longitude === null || longitude === undefined) {
       return NextResponse.json(
         { success: false, error: 'Lokasi GPS tidak tersedia. Pastikan GPS pada perangkat Anda aktif.' },
@@ -158,7 +144,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate latitude range (-90 to 90)
     if (typeof latitude !== 'number' || latitude < -90 || latitude > 90) {
       return NextResponse.json(
         { success: false, error: 'Koordinat latitude tidak valid' },
@@ -166,7 +151,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate longitude range (-180 to 180)
     if (typeof longitude !== 'number' || longitude < -180 || longitude > 180) {
       return NextResponse.json(
         { success: false, error: 'Koordinat longitude tidak valid' },
@@ -174,7 +158,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // VALIDATE GPS LOCATION (BACKEND VALIDATION)
+    // VALIDATE GPS LOCATION
     const gpsValidation = await validateGPSLocation(latitude, longitude);
     if (!gpsValidation.valid) {
       return NextResponse.json(
@@ -194,7 +178,6 @@ export async function POST(request: NextRequest) {
     // Get current time in Asia/Jakarta timezone
     const now = new Date();
     
-    // Use Intl.DateTimeFormat for accurate timezone conversion
     const jakartaFormatter = new Intl.DateTimeFormat('en-CA', {
       timeZone: 'Asia/Jakarta',
       year: 'numeric',
@@ -215,25 +198,18 @@ export async function POST(request: NextRequest) {
       minute: parseInt(jakartaParts.find(p => p.type === 'minute')?.value || '0')
     };
     
-    // Create Jakarta date object for day of week calculation
     const jakartaDate = new Date(jakartaDateObj.year, jakartaDateObj.month - 1, jakartaDateObj.day, jakartaDateObj.hour, jakartaDateObj.minute);
-    
-    // Date string in Asia/Jakarta timezone (YYYY-MM-DD)
     const currentDateStr = `${jakartaDateObj.year}-${String(jakartaDateObj.month).padStart(2, '0')}-${String(jakartaDateObj.day).padStart(2, '0')}`;
-    
-    // Time string in Asia/Jakarta timezone (HH:MM, 24-hour format)
     const currentTimeStr = `${String(jakartaDateObj.hour).padStart(2, '0')}:${String(jakartaDateObj.minute).padStart(2, '0')}`;
-    
-    // Day of week in Asia/Jakarta timezone (0=Sunday, 1=Monday, ..., 6=Saturday)
     const dayOfWeek = jakartaDate.getDay();
 
     // 1. CHECK HOLIDAY
-    const { data: holidayData } = await supabaseServer
-      .from('holidays')
-      .select('*')
-      .eq('date', currentDateStr)
-      .eq('is_active', true)
-      .single();
+    const holidayData = await prisma.holiday.findFirst({
+      where: {
+        date: new Date(currentDateStr),
+        isActive: true,
+      },
+    });
 
     if (holidayData) {
       return NextResponse.json(
@@ -247,11 +223,9 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. CHECK WORK SCHEDULE
-    const { data: scheduleData } = await supabaseServer
-      .from('work_schedules')
-      .select('*')
-      .eq('day_of_week', dayOfWeek)
-      .single();
+    const scheduleData = await prisma.workSchedule.findUnique({
+      where: { dayOfWeek },
+    });
 
     if (!scheduleData) {
       return NextResponse.json(
@@ -260,59 +234,49 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!scheduleData.is_active) {
+    if (!scheduleData.isActive) {
       return NextResponse.json(
         { 
           success: false, 
-          error: `Hari ini (${scheduleData.day_name}) bukan hari kerja`,
+          error: `Hari ini (${scheduleData.dayName}) bukan hari kerja`,
           schedule: scheduleData
         },
         { status: 400 }
       );
     }
 
-    // 3. CHECK IF TOO EARLY (only block if more than 1 hour before work window starts)
-    // This validation allows check-in within the work window or up to 1 hour before
-    const workWindowStart = scheduleData.start_time;
+    // 3. CHECK IF TOO EARLY
+    const workWindowStart = scheduleData.startTime;
     const checkInMinutes = timeToMinutes(currentTimeStr);
     const workStartMinutes = timeToMinutes(workWindowStart);
-    
-    // Calculate how many minutes before work start (negative = before, positive = after)
     const minutesBeforeStart = checkInMinutes - workStartMinutes;
     
-    // Only block if check-in is MORE THAN 1 hour before work window starts
-    // This means: if checkInMinutes < (workStartMinutes - 60), then block
-    // Or: if (checkInMinutes - workStartMinutes) < -60, then block
-    // Examples:
-    // - Work starts 05:20, check-in 05:25 → minutesBeforeStart = 5, allowed ✓
-    // - Work starts 05:20, check-in 05:20 → minutesBeforeStart = 0, allowed ✓
-    // - Work starts 05:20, check-in 04:30 → minutesBeforeStart = -50, allowed ✓ (within 1 hour buffer)
-    // - Work starts 05:20, check-in 04:15 → minutesBeforeStart = -65, blocked ✗ (too early)
     if (minutesBeforeStart < -60) {
       return NextResponse.json(
         { 
           success: false, 
-          error: `Terlalu pagi untuk check-in. Rentang jam masuk dimulai pukul ${scheduleData.start_time}. Check-in diizinkan maksimal 1 jam sebelum jam mulai.`,
+          error: `Terlalu pagi untuk check-in. Rentang jam masuk dimulai pukul ${scheduleData.startTime}. Check-in diizinkan maksimal 1 jam sebelum jam mulai.`,
           schedule: scheduleData
         },
         { status: 400 }
       );
     }
 
-    // 4. CHECK IF ALREADY CHECKED IN TODAY (using Asia/Jakarta date)
-    // Create date objects for Jakarta timezone date range
+    // 4. CHECK IF ALREADY CHECKED IN TODAY
     const jakartaToday = new Date(jakartaDateObj.year, jakartaDateObj.month - 1, jakartaDateObj.day, 0, 0, 0);
     const jakartaTomorrow = new Date(jakartaToday);
     jakartaTomorrow.setDate(jakartaTomorrow.getDate() + 1);
     
-    const { data: existingCheckIn } = await supabaseServer
-      .from('attendance')
-      .select('id')
-      .eq('employee_id', employee_id)
-      .gte('check_in_time', jakartaToday.toISOString())
-      .lt('check_in_time', jakartaTomorrow.toISOString())
-      .is('check_out_time', null)
-      .single();
+    const existingCheckIn = await prisma.attendance.findFirst({
+      where: {
+        employeeId: employee_id,
+        checkInTime: {
+          gte: jakartaToday,
+          lt: jakartaTomorrow,
+        },
+        checkOutTime: null,
+      },
+    });
 
     if (existingCheckIn) {
       return NextResponse.json(
@@ -321,52 +285,43 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 5. DETERMINE STATUS dengan rentang bebas dari database
+    // 5. DETERMINE STATUS
     let status = 'present';
     let notes = '';
     let lateDuration = 0;
     let statusDetail: 'on_time' | 'within_tolerance' | 'late_beyond' = 'on_time';
 
-    // Ambil rentang waktu dari database (atau hitung fallback jika NULL)
-    const startTime = scheduleData.start_time;
+    const startTime = scheduleData.startTime;
     
-    // Akhir jendela "Tepat Waktu"
-    let onTimeEnd = scheduleData.on_time_end_time;
+    let onTimeEnd = scheduleData.onTimeEndTime;
     if (!onTimeEnd) {
-      // Fallback: hitung dari start_time + late_tolerance_minutes
       const startMin = timeToMinutes(startTime);
-      const tol = Math.max(0, scheduleData.late_tolerance_minutes || 0);
+      const tol = Math.max(0, scheduleData.lateToleranceMinutes || 0);
       const totalMin = startMin + tol;
       const [h, m] = [Math.floor(totalMin / 60) % 24, totalMin % 60];
       onTimeEnd = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
     }
     
-    // Awal jendela "Dalam Toleransi"
-    let toleranceStart = scheduleData.tolerance_start_time;
+    let toleranceStart = scheduleData.toleranceStartTime;
     if (!toleranceStart) {
-      toleranceStart = onTimeEnd; // Default: langsung setelah on_time_end
+      toleranceStart = onTimeEnd;
     }
     
-    // Akhir jendela "Dalam Toleransi"
-    let toleranceEnd = scheduleData.tolerance_end_time;
+    let toleranceEnd = scheduleData.toleranceEndTime;
     if (!toleranceEnd) {
-      // Fallback: hitung dari tolerance_start + late_tolerance_minutes
       const tolStartMin = timeToMinutes(toleranceStart);
-      const tol = Math.max(0, scheduleData.late_tolerance_minutes || 0);
+      const tol = Math.max(0, scheduleData.lateToleranceMinutes || 0);
       const totalMin = tolStartMin + tol;
       const [h, m] = [Math.floor(totalMin / 60) % 24, totalMin % 60];
       toleranceEnd = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
     }
 
-    // Tentukan status berdasarkan waktu check-in
     const checkInMin = timeToMinutes(currentTimeStr);
     const startMin = timeToMinutes(startTime);
     const onTimeEndMin = timeToMinutes(onTimeEnd);
-    const toleranceStartMin = timeToMinutes(toleranceStart);
     const toleranceEndMin = timeToMinutes(toleranceEnd);
 
     if (checkInMin >= startMin && checkInMin <= onTimeEndMin) {
-      // Tepat Waktu: di dalam rentang [start_time .. on_time_end_time]
       status = 'present';
       statusDetail = 'on_time';
       const minutesLate = Math.max(0, checkInMin - startMin);
@@ -374,54 +329,37 @@ export async function POST(request: NextRequest) {
         notes = `Tepat waktu (masuk ${minutesLate} menit setelah jam mulai)`;
       }
     } else if (checkInMin > onTimeEndMin && checkInMin <= toleranceEndMin) {
-      // Dalam Toleransi: di dalam rentang (on_time_end_time .. tolerance_end_time]
       status = 'present';
       statusDetail = 'within_tolerance';
       const minutesLate = checkInMin - startMin;
       notes = `Hadir dalam toleransi (+${minutesLate} menit)`;
     } else if (checkInMin > toleranceEndMin) {
-      // Lewat Toleransi: setelah tolerance_end_time
       status = 'late';
       statusDetail = 'late_beyond';
       lateDuration = checkInMin - startMin;
       notes = `Terlambat ${lateDuration} menit (melewati batas toleransi: ${toleranceEnd})`;
     } else {
-      // Sebelum start_time (masih dianggap tepat waktu jika tidak terlalu pagi)
       status = 'present';
       statusDetail = 'on_time';
     }
 
-    // 6. INSERT CHECK-IN RECORD (use server UTC time, but based on Jakarta calculation)
-    // Use office_location_id from GPS validation if location_id not provided
+    // 6. INSERT CHECK-IN RECORD
     const finalLocationId = location_id || gpsValidation.office?.id || null;
 
-    const { data, error } = await supabaseServer
-      .from('attendance')
-      .insert({
-        employee_id,
-        check_in_time: now.toISOString(), // Store as UTC in database
-        check_in_latitude: latitude,
-        check_in_longitude: longitude,
-        office_location_id: finalLocationId,
-        face_match_score,
+    const attendance = await prisma.attendance.create({
+      data: {
+        employeeId: employee_id,
+        checkInTime: now,
+        checkInLatitude: latitude,
+        checkInLongitude: longitude,
+        officeLocationId: finalLocationId,
+        faceMatchScore: face_match_score,
         status,
-        notes: notes || null
-      })
-      .select()
-      .single();
+        notes: notes || null,
+      },
+    });
 
-    if (error) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Gagal menyimpan data check-in',
-          details: error.message,
-        },
-        { status: 500 }
-      );
-    }
-
-    // 7. RETURN SUCCESS WITH DETAILED MESSAGE
+    // 7. RETURN SUCCESS
     let message = '✅ Check-in berhasil!';
     if (status === 'late') {
       message = `⚠️ Check-in berhasil (Terlambat ${lateDuration} menit)`;
@@ -429,14 +367,14 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ 
       success: true,
-      data,
+      data: attendance,
       message,
       details: {
         status,
         statusDetail,
         lateDuration,
-        workSchedule: `${scheduleData.start_time} - ${scheduleData.end_time}`,
-        lateToleranceMinutes: scheduleData.late_tolerance_minutes,
+        workSchedule: `${scheduleData.startTime} - ${scheduleData.endTime}`,
+        lateToleranceMinutes: scheduleData.lateToleranceMinutes,
         location: {
           office: gpsValidation.office?.name,
           distance: gpsValidation.distance?.toFixed(0) + 'm',
@@ -445,7 +383,6 @@ export async function POST(request: NextRequest) {
       }
     });
   } catch (error: any) {
-    // Better error handling with more informative messages
     console.error('Check-in error:', error);
 
     return NextResponse.json(
@@ -458,4 +395,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

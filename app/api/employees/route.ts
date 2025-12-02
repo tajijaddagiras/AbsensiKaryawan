@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseServer } from '@/lib/supabase';
+import { prisma } from '@/lib/prisma';
 
 // Force dynamic rendering (no cache)
 export const dynamic = 'force-dynamic';
@@ -12,37 +12,52 @@ export async function GET(request: NextRequest) {
     const email = searchParams.get('email');
     const showInactive = searchParams.get('showInactive') === 'true';
 
-    // JOIN with app_users to get avatar_url
-    let query = supabaseServer
-      .from('employees')
-      .select(`
-        *,
-        app_users!employees_user_id_fkey (
-          avatar_url
-        )
-      `);
+    const where: any = {};
     
     // Only show active employees by default
     if (!showInactive) {
-      query = query.eq('is_active', true);
+      where.isActive = true;
     }
     
     if (email) {
-      query = query.eq('email', email);
-    } else {
-      query = query.order('created_at', { ascending: false });
+      where.email = email;
     }
 
-    const { data, error } = await query;
-
-    if (error) throw error;
+    const employees = await prisma.employee.findMany({
+      where,
+      include: {
+        user: {
+          select: {
+            avatarUrl: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
 
     // Flatten the data structure to include avatar_url directly
-    const flattenedData = data?.map((emp: any) => ({
-      ...emp,
-      avatar_url: emp.app_users?.avatar_url || null,
-      app_users: undefined // Remove nested object
-    })) || [];
+    const flattenedData = employees.map((emp: any) => {
+      const { user, ...employeeData } = emp;
+      return {
+        id: employeeData.id,
+        user_id: employeeData.userId,
+        employee_code: employeeData.employeeCode,
+        full_name: employeeData.fullName,
+        email: employeeData.email,
+        phone: employeeData.phone,
+        department: employeeData.department,
+        position: employeeData.position,
+        hire_date: employeeData.hireDate,
+        is_active: employeeData.isActive,
+        face_encoding_path: employeeData.faceEncodingPath,
+        face_match_score: employeeData.faceMatchScore,
+        created_at: employeeData.createdAt,
+        updated_at: employeeData.updatedAt,
+        avatar_url: user?.avatarUrl || null,
+      };
+    });
 
     return NextResponse.json({ 
       success: true, 
@@ -71,11 +86,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if employee code already exists
-    const { data: existingCode } = await supabaseServer
-      .from('employees')
-      .select('id')
-      .eq('employee_code', employee_code)
-      .single();
+    const existingCode = await prisma.employee.findUnique({
+      where: { employeeCode: employee_code },
+    });
 
     if (existingCode) {
       return NextResponse.json(
@@ -85,11 +98,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if email already exists in employees table
-    const { data: existingEmail } = await supabaseServer
-      .from('employees')
-      .select('id')
-      .eq('email', email)
-      .single();
+    const existingEmail = await prisma.employee.findUnique({
+      where: { email },
+    });
 
     if (existingEmail) {
       return NextResponse.json(
@@ -99,27 +110,23 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert new employee
-    const { data, error } = await supabaseServer
-      .from('employees')
-      .insert({
-        user_id,
-        employee_code,
-        full_name,
+    const employee = await prisma.employee.create({
+      data: {
+        userId: user_id || null,
+        employeeCode: employee_code,
+        fullName: full_name,
         email,
-        phone,
-        department,
-        position,
-        hire_date,
-        is_active: true
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
+        phone: phone || null,
+        department: department || null,
+        position: position || null,
+        hireDate: hire_date ? new Date(hire_date) : null,
+        isActive: true,
+      },
+    });
 
     return NextResponse.json({ 
       success: true, 
-      data 
+      data: employee
     }, { status: 201 });
   } catch (error: any) {
     return NextResponse.json(

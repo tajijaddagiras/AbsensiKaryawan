@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseServer } from '@/lib/supabase';
+import { prisma } from '@/lib/prisma';
 
-// POST /api/face-recognition/register - Register face for employee
+// POST /api/face-recognition/register
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -21,31 +21,17 @@ export async function POST(request: NextRequest) {
     const fileName = `face_${employee_id}_${Date.now()}.json`;
     const filePath = `face-encodings/${fileName}`;
 
-    // In a real implementation, you would save to storage
-    // For now, we'll store the path in database
-    // You should save the actual file to Supabase Storage
-
     // Update employee record with face encoding path
-    const { data, error } = await supabaseServer
-      .from('employees')
-      .update({ 
-        face_encoding_path: filePath,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', employee_id)
-      .select()
-      .single();
+    const employee = await prisma.employee.update({
+      where: { id: employee_id },
+      data: { faceEncodingPath: filePath },
+    });
 
-    if (error) throw error;
-
-    // TODO: Save face descriptor to Supabase Storage
-    // await supabaseServer.storage
-    //   .from('face-encodings')
-    //   .upload(fileName, faceDescriptorString);
+    // TODO: Save face descriptor to storage if needed
 
     return NextResponse.json({ 
       success: true,
-      data,
+      data: employee,
       message: 'Face registered successfully',
       face_encoding_path: filePath
     });
@@ -56,4 +42,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

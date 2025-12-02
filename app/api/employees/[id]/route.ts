@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseServer } from '@/lib/supabase';
+import { prisma } from '@/lib/prisma';
 
 // GET /api/employees/[id] - Get employee by ID
 export async function GET(
@@ -9,15 +9,11 @@ export async function GET(
   try {
     const { id } = await params;
     
-    const { data, error } = await supabaseServer
-      .from('employees')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const employee = await prisma.employee.findUnique({
+      where: { id },
+    });
 
-    if (error) throw error;
-
-    if (!data) {
+    if (!employee) {
       return NextResponse.json(
         { success: false, error: 'Employee not found' },
         { status: 404 }
@@ -26,7 +22,7 @@ export async function GET(
 
     return NextResponse.json({ 
       success: true, 
-      data 
+      data: employee
     });
   } catch (error: any) {
     return NextResponse.json(
@@ -47,11 +43,9 @@ export async function PUT(
     const { full_name, email, phone, department, position, is_active, face_encoding_path } = body;
 
     // Check if employee exists
-    const { data: existing } = await supabaseServer
-      .from('employees')
-      .select('id')
-      .eq('id', id)
-      .single();
+    const existing = await prisma.employee.findUnique({
+      where: { id },
+    });
 
     if (!existing) {
       return NextResponse.json(
@@ -62,12 +56,12 @@ export async function PUT(
 
     // Check if email is being changed and is unique
     if (email) {
-      const { data: emailExists } = await supabaseServer
-        .from('employees')
-        .select('id')
-        .eq('email', email)
-        .neq('id', id)
-        .single();
+      const emailExists = await prisma.employee.findFirst({
+        where: {
+          email,
+          id: { not: id },
+        },
+      });
 
       if (emailExists) {
         return NextResponse.json(
@@ -78,27 +72,22 @@ export async function PUT(
     }
 
     // Update employee
-    const { data, error } = await supabaseServer
-      .from('employees')
-      .update({
-        full_name,
+    const employee = await prisma.employee.update({
+      where: { id },
+      data: {
+        fullName: full_name,
         email,
         phone,
         department,
         position,
-        is_active,
-        face_encoding_path,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
+        isActive: is_active,
+        faceEncodingPath: face_encoding_path,
+      },
+    });
 
     return NextResponse.json({ 
       success: true, 
-      data 
+      data: employee
     });
   } catch (error: any) {
     return NextResponse.json(
@@ -126,13 +115,18 @@ export async function PATCH(
     }
 
     // Check if employee exists
-    const { data: existing, error: checkError } = await supabaseServer
-      .from('employees')
-      .select('id, user_id, full_name, email, is_active')
-      .eq('id', id)
-      .single();
+    const existing = await prisma.employee.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        userId: true,
+        fullName: true,
+        email: true,
+        isActive: true,
+      },
+    });
 
-    if (checkError || !existing) {
+    if (!existing) {
       return NextResponse.json(
         { success: false, error: 'Employee not found' },
         { status: 404 }
@@ -143,39 +137,23 @@ export async function PATCH(
     const newStatus = isActivating;
 
     console.log(`=== ${isActivating ? 'ACTIVATE' : 'DEACTIVATE'} EMPLOYEE START ===`);
-    console.log(`${isActivating ? 'Activating' : 'Deactivating'} employee:`, existing.full_name, existing.email);
+    console.log(`${isActivating ? 'Activating' : 'Deactivating'} employee:`, existing.fullName, existing.email);
 
     // Update is_active status
-    const { error: empError } = await supabaseServer
-      .from('employees')
-      .update({ 
-        is_active: newStatus,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', id);
-
-    if (empError) {
-      console.error(`Error ${isActivating ? 'activating' : 'deactivating'} employee:`, empError);
-      throw new Error(`Failed to ${action} employee`);
-    }
+    await prisma.employee.update({
+      where: { id },
+      data: { isActive: newStatus },
+    });
 
     console.log(`✓ Employee ${isActivating ? 'activated' : 'deactivated'}`);
 
     // Also update user account status
-    if (existing.user_id) {
-      const { error: userError } = await supabaseServer
-        .from('app_users')
-        .update({ 
-          is_active: newStatus,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', existing.user_id);
-
-      if (userError) {
-        console.error(`Error ${isActivating ? 'activating' : 'deactivating'} user:`, userError);
-      } else {
-        console.log(`✓ User account ${isActivating ? 'activated' : 'deactivated'}`);
-      }
+    if (existing.userId) {
+      await prisma.user.update({
+        where: { id: existing.userId },
+        data: { isActive: newStatus },
+      });
+      console.log(`✓ User account ${isActivating ? 'activated' : 'deactivated'}`);
     }
 
     console.log('=== STATUS TOGGLE COMPLETE ===');
@@ -185,7 +163,7 @@ export async function PATCH(
       message: `Employee ${isActivating ? 'activated' : 'deactivated'} successfully`,
       data: { 
         id, 
-        name: existing.full_name,
+        name: existing.fullName,
         email: existing.email,
         is_active: newStatus
       }
@@ -208,13 +186,17 @@ export async function DELETE(
     const { id } = await params;
     
     // Check if employee exists
-    const { data: existing, error: checkError } = await supabaseServer
-      .from('employees')
-      .select('id, user_id, full_name, email')
-      .eq('id', id)
-      .single();
+    const existing = await prisma.employee.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        userId: true,
+        fullName: true,
+        email: true,
+      },
+    });
 
-    if (checkError || !existing) {
+    if (!existing) {
       return NextResponse.json(
         { success: false, error: 'Employee not found' },
         { status: 404 }
@@ -222,47 +204,30 @@ export async function DELETE(
     }
 
     console.log('=== HARD DELETE START ===');
-    console.log('Deleting employee:', existing.full_name, existing.email);
+    console.log('Deleting employee:', existing.fullName, existing.email);
 
     // CRITICAL: Delete user first (CASCADE will auto-delete employee and attendance)
-    // Based on schema: user_id → app_users(id) ON DELETE CASCADE
-    if (existing.user_id) {
-      const { error: userError } = await supabaseServer
-        .from('app_users')
-        .delete()
-        .eq('id', existing.user_id);
-
-      if (userError) {
-        console.error('Error deleting user:', userError);
-        throw new Error('Failed to delete user account: ' + userError.message);
-      }
+    if (existing.userId) {
+      await prisma.user.delete({
+        where: { id: existing.userId },
+      });
       console.log('✓ User deleted (CASCADE will delete employee & attendance)');
     } else {
       // If no user_id, delete employee directly (attendance will CASCADE)
-      const { error: empError } = await supabaseServer
-        .from('employees')
-        .delete()
-        .eq('id', id);
-
-      if (empError) {
-        console.error('Error deleting employee:', empError);
-        throw new Error('Failed to delete employee: ' + empError.message);
-      }
+      await prisma.employee.delete({
+        where: { id },
+      });
       console.log('✓ Employee deleted (CASCADE will delete attendance)');
     }
 
     // Verify complete deletion
-    const { data: checkEmp } = await supabaseServer
-      .from('employees')
-      .select('id')
-      .eq('email', existing.email)
-      .single();
+    const checkEmp = await prisma.employee.findFirst({
+      where: { email: existing.email },
+    });
 
-    const { data: checkUser } = await supabaseServer
-      .from('app_users')
-      .select('id')
-      .eq('email', existing.email)
-      .single();
+    const checkUser = await prisma.user.findFirst({
+      where: { email: existing.email },
+    });
 
     console.log('✓ Verification - Employee exists:', !!checkEmp);
     console.log('✓ Verification - User exists:', !!checkUser);
@@ -273,7 +238,7 @@ export async function DELETE(
       message: 'Employee permanently deleted from database',
       data: { 
         id, 
-        name: existing.full_name,
+        name: existing.fullName,
         email: existing.email
       }
     });
@@ -285,4 +250,3 @@ export async function DELETE(
     );
   }
 }
-

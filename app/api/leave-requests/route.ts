@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+import { prisma } from '@/lib/prisma';
 
 // Force dynamic rendering - no caching for real-time data
 export const dynamic = 'force-dynamic';
@@ -10,7 +7,6 @@ export const revalidate = 0;
 
 export async function GET(request: NextRequest) {
   try {
-    const supabaseServer = createClient(supabaseUrl, supabaseServiceKey);
     const { searchParams } = new URL(request.url);
     
     const employeeId = searchParams.get('employee_id');
@@ -18,97 +14,90 @@ export async function GET(request: NextRequest) {
     const userId = searchParams.get('user_id');
     const date = searchParams.get('date'); // Filter for specific date (YYYY-MM-DD)
 
-    // Base query with employee and admin info
-    let query = supabaseServer
-      .from('leave_requests')
-      .select(`
-        *,
-        employees!leave_requests_employee_id_fkey (
-          id,
-          employee_code,
-          full_name,
-          email,
-          department,
-          position,
-          app_users!employees_user_id_fkey (
-            avatar_url
-          )
-        ),
-        app_users!leave_requests_reviewed_by_fkey (
-          full_name,
-          username
-        )
-      `)
-      .order('created_at', { ascending: false });
+    const where: any = {};
 
     // Filter by employee_id if provided
     if (employeeId) {
-      query = query.eq('employee_id', employeeId);
+      where.employeeId = employeeId;
     }
 
     // Filter by user_id (get employee_id from user_id first)
     if (userId && !employeeId) {
-      const { data: employeeData, error: employeeError } = await supabaseServer
-        .from('employees')
-        .select('id')
-        .eq('user_id', userId)
-        .single();
+      const employee = await prisma.employee.findUnique({
+        where: { userId },
+        select: { id: true },
+      });
 
-      if (employeeError || !employeeData) {
+      if (!employee) {
         return NextResponse.json({ 
           success: false, 
           message: 'Employee not found for this user' 
         }, { status: 404 });
       }
 
-      query = query.eq('employee_id', employeeData.id);
+      where.employeeId = employee.id;
     }
 
     // Filter by status if provided
     if (status && status !== 'all') {
-      query = query.eq('status', status);
+      where.status = status;
     }
 
     // Filter by date if provided (check if date falls within start_date and end_date range)
     if (date) {
-      query = query.lte('start_date', date).gte('end_date', date);
+      const filterDate = new Date(date);
+      where.startDate = { lte: filterDate };
+      where.endDate = { gte: filterDate };
     }
 
-    const { data, error } = await query;
-
-    if (error) {
-      console.error('Error fetching leave requests:', error);
-      return NextResponse.json({ 
-        success: false, 
-        message: 'Failed to fetch leave requests',
-        error: error.message 
-      }, { status: 500 });
-    }
+    const leaveRequests = await prisma.leaveRequest.findMany({
+      where,
+      include: {
+        employee: {
+          include: {
+            user: {
+              select: {
+                avatarUrl: true,
+              },
+            },
+          },
+        },
+        reviewer: {
+          select: {
+            fullName: true,
+            username: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
 
     // Flatten the data structure
-    const flattenedData = data?.map((request: any) => ({
+    const flattenedData = leaveRequests.map((request: any) => ({
       id: request.id,
-      employee_id: request.employee_id,
-      employee_name: request.employees?.full_name || 'Unknown',
-      employee_code: request.employees?.employee_code || '-',
-      employee_email: request.employees?.email || '-',
-      department: request.employees?.department || '-',
-      position: request.employees?.position || '-',
-      avatar_url: request.employees?.app_users?.avatar_url || null,
-      leave_type: request.leave_type,
-      start_date: request.start_date,
-      end_date: request.end_date,
+      employee_id: request.employeeId,
+      employee_name: request.employee?.fullName || 'Unknown',
+      employee_code: request.employee?.employeeCode || '-',
+      employee_email: request.employee?.email || '-',
+      department: request.employee?.department || '-',
+      position: request.employee?.position || '-',
+      avatar_url: request.employee?.user?.avatarUrl || null,
+      leave_type: request.leaveType,
+      start_date: request.startDate,
+      end_date: request.endDate,
       days: request.days,
       reason: request.reason,
-      attachment_url: request.attachment_url,
+      attachment_url: request.attachmentUrl,
       status: request.status,
-      admin_notes: request.admin_notes,
-      reviewed_by: request.reviewed_by,
-      reviewed_by_name: request.app_users?.full_name || null,
-      reviewed_at: request.reviewed_at,
-      created_at: request.created_at,
-      updated_at: request.updated_at
-    })) || [];
+      admin_notes: request.adminNotes,
+      reviewed_by: request.reviewedBy,
+      reviewed_by_name: request.reviewer?.fullName || null,
+      reviewed_at: request.reviewedAt,
+      created_at: request.createdAt,
+      updated_at: request.updatedAt
+    }));
 
     return NextResponse.json({ 
       success: true, 
@@ -127,7 +116,6 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabaseServer = createClient(supabaseUrl, supabaseServiceKey);
     const body = await request.json();
 
     const { 
@@ -148,13 +136,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Get employee_id from user_id
-    const { data: employeeData, error: employeeError } = await supabaseServer
-      .from('employees')
-      .select('id')
-      .eq('user_id', user_id)
-      .single();
+    const employee = await prisma.employee.findUnique({
+      where: { userId: user_id },
+      select: { id: true },
+    });
 
-    if (employeeError || !employeeData) {
+    if (!employee) {
       return NextResponse.json({ 
         success: false, 
         message: 'Employee not found for this user' 
@@ -162,8 +149,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Calculate days
-    // 30 Oct to 31 Oct = 1 day (not 2)
-    // Same day = 1 day
     const startDateObj = new Date(start_date);
     const endDateObj = new Date(end_date);
     const diffTime = endDateObj.getTime() - startDateObj.getTime();
@@ -171,34 +156,23 @@ export async function POST(request: NextRequest) {
     const days = diffDays === 0 ? 1 : (diffDays > 0 ? diffDays : 1);
 
     // Insert leave request
-    const { data, error } = await supabaseServer
-      .from('leave_requests')
-      .insert({
-        employee_id: employeeData.id,
-        leave_type,
-        start_date,
-        end_date,
+    const leaveRequest = await prisma.leaveRequest.create({
+      data: {
+        employeeId: employee.id,
+        leaveType: leave_type,
+        startDate: startDateObj,
+        endDate: endDateObj,
         days,
         reason,
-        attachment_url: attachment_url || null,
-        status: 'pending'
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error creating leave request:', error);
-      return NextResponse.json({ 
-        success: false, 
-        message: 'Failed to create leave request',
-        error: error.message 
-      }, { status: 500 });
-    }
+        attachmentUrl: attachment_url || null,
+        status: 'pending',
+      },
+    });
 
     return NextResponse.json({ 
       success: true, 
       message: 'Leave request submitted successfully',
-      data 
+      data: leaveRequest 
     });
 
   } catch (error: any) {
@@ -213,7 +187,6 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const supabaseServer = createClient(supabaseUrl, supabaseServiceKey);
     const body = await request.json();
 
     const { 
@@ -240,31 +213,20 @@ export async function PUT(request: NextRequest) {
     }
 
     // Update leave request
-    const { data, error } = await supabaseServer
-      .from('leave_requests')
-      .update({
+    const leaveRequest = await prisma.leaveRequest.update({
+      where: { id },
+      data: {
         status,
-        admin_notes: admin_notes || null,
-        reviewed_by,
-        reviewed_at: new Date().toISOString()
-      })
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error updating leave request:', error);
-      return NextResponse.json({ 
-        success: false, 
-        message: 'Failed to update leave request',
-        error: error.message 
-      }, { status: 500 });
-    }
+        adminNotes: admin_notes || null,
+        reviewedBy: reviewed_by,
+        reviewedAt: new Date(),
+      },
+    });
 
     return NextResponse.json({ 
       success: true, 
       message: `Leave request ${status} successfully`,
-      data 
+      data: leaveRequest 
     });
 
   } catch (error: any) {
@@ -276,4 +238,3 @@ export async function PUT(request: NextRequest) {
     }, { status: 500 });
   }
 }
-

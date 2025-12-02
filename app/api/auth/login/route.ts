@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseServer } from '@/lib/supabase';
-import { hashPassword } from '@/lib/utils/auth';
+import { prisma } from '@/lib/prisma';
+import * as bcrypt from 'bcryptjs';
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,17 +13,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Hash the password with MD5
-    const hashedPassword = hashPassword(password);
-
     // Find user by username
-    const { data: user, error } = await supabaseServer
-      .from('app_users')
-      .select('*')
-      .eq('username', username)
-      .single();
+    const user = await prisma.user.findUnique({
+      where: { username },
+    });
 
-    if (error || !user) {
+    if (!user) {
       return NextResponse.json(
         { error: 'Invalid username or password' },
         { status: 401 }
@@ -31,15 +26,17 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user is active
-    if (!user.is_active) {
+    if (!user.isActive) {
       return NextResponse.json(
         { error: 'Your account has been deactivated' },
         { status: 403 }
       );
     }
 
-    // Verify password
-    if (user.password !== hashedPassword) {
+    // Verify password with bcrypt
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
       return NextResponse.json(
         { error: 'Invalid username or password' },
         { status: 401 }
@@ -47,10 +44,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Update last login
-    await supabaseServer
-      .from('app_users')
-      .update({ last_login: new Date().toISOString() })
-      .eq('id', user.id);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { lastLogin: new Date() },
+    });
 
     // Return user data (without password)
     const { password: _, ...userWithoutPassword } = user;

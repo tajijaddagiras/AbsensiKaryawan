@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseServer } from '@/lib/supabase';
+import { prisma } from '@/lib/prisma';
 
 // PUT /api/employees/[id]/face-encoding - Update face encoding path
 export async function PUT(
@@ -20,31 +20,26 @@ export async function PUT(
 
     // Prepare update data
     const updateData: any = {
-      face_encoding_path: faceEncoding,
-      updated_at: new Date().toISOString()
+      faceEncodingPath: faceEncoding,
     };
 
     // Add match score if provided (from training)
     if (matchScore !== undefined && matchScore !== null) {
-      updateData.face_match_score = parseFloat(matchScore);
+      updateData.faceMatchScore = parseFloat(matchScore);
       console.log('💾 Saving face match score:', matchScore);
     }
 
     // Update face encoding and match score
-    const { data, error } = await supabaseServer
-      .from('employees')
-      .update(updateData)
-      .eq('id', resolvedParams.id)
-      .select()
-      .single();
+    const employee = await prisma.employee.update({
+      where: { id: resolvedParams.id },
+      data: updateData,
+    });
 
-    if (error) throw error;
-
-    console.log('✅ Face encoding and score saved successfully for employee:', data.full_name);
+    console.log('✅ Face encoding and score saved successfully for employee:', employee.fullName);
 
     return NextResponse.json({ 
       success: true, 
-      data,
+      data: employee,
       message: 'Face encoding saved successfully'
     });
   } catch (error: any) {
@@ -55,4 +50,3 @@ export async function PUT(
     );
   }
 }
-

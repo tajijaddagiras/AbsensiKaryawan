@@ -349,7 +349,13 @@ export default function OfficeLocationsPage() {
         setNotification({ show: true, type: 'success', message: `Lokasi berhasil terdeteksi! Alamat: ${address}` });
       },
       (error) => {
-        console.error('Error getting location:', error);
+        console.error('Error getting location:', {
+          code: error.code,
+          message: error.message,
+          PERMISSION_DENIED: error.PERMISSION_DENIED,
+          POSITION_UNAVAILABLE: error.POSITION_UNAVAILABLE,
+          TIMEOUT: error.TIMEOUT
+        });
         setIsLoadingLocation(false);
         
         let errorMessage = 'Gagal mendapatkan lokasi. ';

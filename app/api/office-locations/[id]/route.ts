@@ -1,20 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseServer } from '@/lib/supabase';
+import { prisma } from '@/lib/prisma';
 
-// GET /api/office-locations/[id] - Get location by ID
+// GET /api/office-locations/[id]
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
-    const { data, error } = await supabaseServer
-      .from('office_locations')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (error) throw error;
+    const data = await prisma.officeLocation.findUnique({
+      where: { id },
+    });
 
     return NextResponse.json({ 
       success: true, 
@@ -28,7 +24,7 @@ export async function GET(
   }
 }
 
-// PUT /api/office-locations/[id] - Update location
+// PUT /api/office-locations/[id]
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -38,26 +34,37 @@ export async function PUT(
     const body = await request.json();
     const { name, address, latitude, longitude, radius, is_active } = body;
 
-    const { data, error } = await supabaseServer
-      .from('office_locations')
-      .update({
-        name,
-        address,
-        latitude,
-        longitude,
-        radius,
-        is_active,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', id)
-      .select()
-      .single();
+    // Build update data object with only provided fields
+    const updateData: any = {};
+    
+    if (name !== undefined) updateData.name = name;
+    if (address !== undefined) updateData.address = address;
+    if (latitude !== undefined) updateData.latitude = latitude;
+    if (longitude !== undefined) updateData.longitude = longitude;
+    if (radius !== undefined) updateData.radius = radius;
+    if (is_active !== undefined) updateData.isActive = is_active;
 
-    if (error) throw error;
+    const data = await prisma.officeLocation.update({
+      where: { id },
+      data: updateData,
+    });
+
+    // Transform to snake_case for frontend compatibility
+    const responseData = {
+      id: data.id,
+      name: data.name,
+      address: data.address,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      radius: data.radius,
+      is_active: data.isActive,
+      created_at: data.createdAt,
+      updated_at: data.updatedAt,
+    };
 
     return NextResponse.json({ 
       success: true, 
-      data 
+      data: responseData 
     });
   } catch (error: any) {
     return NextResponse.json(
@@ -67,7 +74,7 @@ export async function PUT(
   }
 }
 
-// DELETE /api/office-locations/[id] - Delete location
+// DELETE /api/office-locations/[id]
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -75,12 +82,9 @@ export async function DELETE(
   try {
     const { id } = await params;
     
-    // Check if location exists
-    const { data: existing } = await supabaseServer
-      .from('office_locations')
-      .select('id')
-      .eq('id', id)
-      .single();
+    const existing = await prisma.officeLocation.findUnique({
+      where: { id },
+    });
 
     if (!existing) {
       return NextResponse.json(
@@ -89,13 +93,9 @@ export async function DELETE(
       );
     }
 
-    // Delete location
-    const { error } = await supabaseServer
-      .from('office_locations')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
+    await prisma.officeLocation.delete({
+      where: { id },
+    });
 
     return NextResponse.json({ 
       success: true,
@@ -108,4 +108,3 @@ export async function DELETE(
     );
   }
 }
-

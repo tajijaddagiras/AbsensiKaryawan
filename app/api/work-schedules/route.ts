@@ -1,19 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseServer } from '@/lib/supabase';
+import { prisma } from '@/lib/prisma';
 
-// Force dynamic rendering (no cache) - agar data selalu fresh
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-// GET /api/work-schedules - Get all work schedules
+// GET /api/work-schedules
 export async function GET(request: NextRequest) {
   try {
-    const { data, error } = await supabaseServer
-      .from('work_schedules')
-      .select('*')
-      .order('day_of_week', { ascending: true });
+    const schedules = await prisma.workSchedule.findMany({
+      orderBy: { dayOfWeek: 'asc' },
+    });
 
-    if (error) throw error;
+    // Transform to snake_case for frontend compatibility
+    const data = schedules.map(schedule => ({
+      id: schedule.id,
+      day_of_week: schedule.dayOfWeek,
+      day_name: schedule.dayName,
+      start_time: schedule.startTime,
+      on_time_end_time: schedule.onTimeEndTime,
+      tolerance_start_time: schedule.toleranceStartTime,
+      tolerance_end_time: schedule.toleranceEndTime,
+      end_time: schedule.endTime,
+      is_active: schedule.isActive,
+      late_tolerance_minutes: schedule.lateToleranceMinutes,
+      created_at: schedule.createdAt,
+      updated_at: schedule.updatedAt,
+    }));
 
     return NextResponse.json({ 
       success: true, 
@@ -27,7 +39,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// PUT /api/work-schedules - Update work schedule
+// PUT /api/work-schedules
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
@@ -49,26 +61,20 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const updateData: any = {
-      updated_at: new Date().toISOString()
-    };
+    const updateData: any = {};
 
-    if (start_time !== undefined) updateData.start_time = start_time;
-    if (on_time_end_time !== undefined) updateData.on_time_end_time = on_time_end_time || null;
-    if (tolerance_start_time !== undefined) updateData.tolerance_start_time = tolerance_start_time || null;
-    if (tolerance_end_time !== undefined) updateData.tolerance_end_time = tolerance_end_time || null;
-    if (end_time !== undefined) updateData.end_time = end_time;
-    if (is_active !== undefined) updateData.is_active = is_active;
-    if (late_tolerance_minutes !== undefined) updateData.late_tolerance_minutes = late_tolerance_minutes;
+    if (start_time !== undefined) updateData.startTime = start_time;
+    if (on_time_end_time !== undefined) updateData.onTimeEndTime = on_time_end_time || null;
+    if (tolerance_start_time !== undefined) updateData.toleranceStartTime = tolerance_start_time || null;
+    if (tolerance_end_time !== undefined) updateData.toleranceEndTime = tolerance_end_time || null;
+    if (end_time !== undefined) updateData.endTime = end_time;
+    if (is_active !== undefined) updateData.isActive = is_active;
+    if (late_tolerance_minutes !== undefined) updateData.lateToleranceMinutes = late_tolerance_minutes;
 
-    const { data, error } = await supabaseServer
-      .from('work_schedules')
-      .update(updateData)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
+    const data = await prisma.workSchedule.update({
+      where: { id },
+      data: updateData,
+    });
 
     return NextResponse.json({ 
       success: true, 
@@ -82,4 +88,3 @@ export async function PUT(request: NextRequest) {
     );
   }
 }
-

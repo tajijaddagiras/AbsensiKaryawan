@@ -402,7 +402,7 @@ export default function FaceTrainingPage() {
                         Skor Training Terakhir
                       </p>
                       <div className="text-6xl sm:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-600 mb-2">
-                        {employee?.face_match_score?.toFixed(1) || '0.0'}%
+                        {employee?.face_match_score ? Number(employee.face_match_score).toFixed(1) : '0.0'}%
                       </div>
                       <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-full text-sm font-semibold">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

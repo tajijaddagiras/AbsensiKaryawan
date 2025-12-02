@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseServer } from '@/lib/supabase';
-import { hashPassword, isValidEmail } from '@/lib/utils/auth';
+import { prisma } from '@/lib/prisma';
+import * as bcrypt from 'bcryptjs';
+
+function isValidEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -28,18 +33,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Hash password with MD5
-    const hashedPassword = hashPassword(password);
-
     // Check if username already exists
-    const { data: existingUsername } = await supabaseServer
-      .from('app_users')
-      .select('id, username')
-      .eq('username', username)
-      .single();
+    const existingUsername = await prisma.user.findUnique({
+      where: { username },
+    });
 
     if (existingUsername) {
-      console.log('Username already exists in app_users:', username);
+      console.log('Username already exists:', username);
       return NextResponse.json(
         { 
           success: false,
@@ -50,14 +50,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if email already exists
-    const { data: existingEmail } = await supabaseServer
-      .from('app_users')
-      .select('id, email')
-      .eq('email', email)
-      .single();
+    const existingEmail = await prisma.user.findUnique({
+      where: { email },
+    });
 
     if (existingEmail) {
-      console.log('Email already exists in app_users:', email);
+      console.log('Email already exists:', email);
       return NextResponse.json(
         { 
           success: false,
@@ -67,28 +65,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Hash password with bcrypt
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     // Create new user
-    const { data: newUser, error } = await supabaseServer
-      .from('app_users')
-      .insert({
+    const newUser = await prisma.user.create({
+      data: {
         username,
         email,
         password: hashedPassword,
-        full_name,
+        fullName: full_name,
         phone: phone || null,
         role: 'user',
-        is_active: true,
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Database error:', error);
-      return NextResponse.json(
-        { error: 'Failed to create user' },
-        { status: 500 }
-      );
-    }
+        isActive: true,
+      },
+    });
 
     // Return user data (without password)
     const { password: _, ...userWithoutPassword } = newUser;

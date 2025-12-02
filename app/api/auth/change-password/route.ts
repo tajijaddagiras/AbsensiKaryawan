@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseServer } from '@/lib/supabase';
-import { hashPassword } from '@/lib/utils/auth';
+import { prisma } from '@/lib/prisma';
+import * as bcrypt from 'bcryptjs';
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,13 +14,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user data
-    const { data: user, error } = await supabaseServer
-      .from('app_users')
-      .select('*')
-      .eq('id', userId)
-      .single();
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
 
-    if (error || !user) {
+    if (!user) {
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
@@ -28,8 +26,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify current password
-    const hashedCurrentPassword = hashPassword(currentPassword);
-    if (user.password !== hashedCurrentPassword) {
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isPasswordValid) {
       return NextResponse.json(
         { error: 'Current password is incorrect' },
         { status: 401 }
@@ -37,18 +35,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Hash new password
-    const hashedNewPassword = hashPassword(newPassword);
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
 
     // Update password
-    const { error: updateError } = await supabaseServer
-      .from('app_users')
-      .update({ 
+    await prisma.user.update({
+      where: { id: userId },
+      data: { 
         password: hashedNewPassword,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', userId);
-
-    if (updateError) throw updateError;
+      },
+    });
 
     return NextResponse.json({
       success: true,

@@ -1,338 +1,200 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 export default function Hero() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-700 to-purple-800">
-      {/* Animated Background - Responsive */}
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-slate-900 pt-20">
+      {/* Background Effects */}
       <div className="absolute inset-0 overflow-hidden">
-        {/* Mobile: Smaller blobs, less movement */}
-        <div className="absolute -top-20 -left-20 sm:-top-40 sm:-left-40 w-48 h-48 sm:w-64 sm:h-64 lg:w-96 lg:h-96 bg-purple-500/20 sm:bg-purple-500/30 rounded-full filter blur-2xl sm:blur-3xl animate-blob"></div>
-        <div className="absolute -bottom-20 -right-20 sm:-bottom-40 sm:-right-40 w-48 h-48 sm:w-64 sm:h-64 lg:w-96 lg:h-96 bg-cyan-500/20 sm:bg-cyan-500/30 rounded-full filter blur-2xl sm:blur-3xl animate-blob animation-delay-2000"></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 sm:w-64 sm:h-64 lg:w-96 lg:h-96 bg-pink-500/10 sm:bg-pink-500/20 rounded-full filter blur-2xl sm:blur-3xl animate-blob animation-delay-4000"></div>
+        {/* Modern Gradient Background */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-[#0B1120] to-black"></div>
+        
+        {/* Animated Mesh Gradients */}
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-primary-500/10 blur-[100px] animate-blob"></div>
+        <div className="absolute top-[20%] right-[-10%] w-[35%] h-[35%] rounded-full bg-secondary-500/10 blur-[100px] animate-blob animation-delay-2000"></div>
+        <div className="absolute bottom-[-10%] left-[20%] w-[40%] h-[40%] rounded-full bg-blue-500/10 blur-[100px] animate-blob animation-delay-4000"></div>
+
+        {/* Grid Pattern */}
+        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-20"></div>
       </div>
 
-      {/* Grid Pattern Overlay - Smaller on mobile */}
-      <div className="absolute inset-0 bg-grid-white/5 sm:bg-grid-white/5"></div>
-      
-      {/* Gradient Overlay for better text readability on mobile */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/10"></div>
-
-      {/* Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-24 lg:py-32">
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
+        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+          
           {/* Left Content */}
-          <div className="text-center lg:text-left">
+          <div className={`flex-1 text-center lg:text-left transition-all duration-1000 transform ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white text-xs sm:text-sm font-medium mb-6 sm:mb-8">
-              <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-              Sistem Absensi Modern & Terpercaya
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-800/50 border border-slate-700 backdrop-blur-sm mb-8 hover:bg-slate-800/70 transition-colors cursor-default">
+              <span className="flex h-2 w-2 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+              </span>
+              <span className="text-sm font-medium text-slate-300">Teknologi Face Recognition Terbaru</span>
             </div>
 
             {/* Headline */}
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 sm:mb-6 leading-tight">
-              Kelola Absensi Karyawan dengan{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-blue-300">
-                Face Recognition
+            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-white mb-6 leading-[1.1] tracking-tight">
+              Absensi Karyawan <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 via-blue-400 to-secondary-400">
+                Lebih Cerdas
               </span>
             </h1>
 
-            {/* Subheadline */}
-            <p className="text-base sm:text-lg lg:text-xl text-white/80 mb-6 sm:mb-8 max-w-2xl mx-auto lg:mx-0">
-              Sistem absensi modern dengan verifikasi wajah, real-time dashboard, dan laporan otomatis. Tingkatkan efisiensi dan akurasi data kehadiran karyawan Anda.
+            {/* Description */}
+            <p className="text-lg sm:text-xl text-slate-400 mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+              Tingkatkan efisiensi operasional dengan sistem absensi berbasis AI. 
+              Akurasi tinggi, anti-fraud, dan laporan real-time dalam satu dashboard terintegrasi.
             </p>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Link
                 href="/admin"
-                className="group px-6 sm:px-8 py-3 sm:py-4 bg-white text-blue-700 text-base sm:text-lg font-bold rounded-xl shadow-2xl hover:shadow-3xl transition-all hover:scale-105 flex items-center justify-center gap-2"
+                className="group px-8 py-4 bg-primary-600 hover:bg-primary-500 text-white text-lg font-semibold rounded-2xl transition-all duration-300 shadow-lg shadow-primary-600/25 hover:shadow-primary-600/40 hover:-translate-y-1 flex items-center justify-center gap-2"
               >
-                <svg
-                  className="w-5 h-5 sm:w-6 sm:h-6 group-hover:rotate-12 transition-transform"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 10V3L4 14h7v7l9-11h-7z"
-                  />
-                </svg>
                 Mulai Sekarang
+                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
               </Link>
               <button
-                onClick={() => {
-                  const element = document.getElementById('how-it-works');
-                  element?.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className="px-6 sm:px-8 py-3 sm:py-4 bg-white/10 backdrop-blur-sm border-2 border-white/30 text-white text-base sm:text-lg font-bold rounded-xl hover:bg-white/20 transition-all hover:scale-105 flex items-center justify-center gap-2"
+                onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
+                className="px-8 py-4 bg-slate-800/50 hover:bg-slate-800 text-white text-lg font-semibold rounded-2xl border border-slate-700 transition-all duration-300 hover:-translate-y-1 flex items-center justify-center gap-2"
               >
-                <svg
-                  className="w-5 h-5 sm:w-6 sm:h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                Lihat Cara Kerja
+                Pelajari Lebih Lanjut
               </button>
             </div>
 
-            {/* Trust Indicators */}
-            <div className="mt-8 sm:mt-12 flex flex-wrap items-center justify-center lg:justify-start gap-4 sm:gap-6 text-white/70 text-xs sm:text-sm">
-              <div className="flex items-center gap-2">
-                <svg
-                  className="w-4 h-4 sm:w-5 sm:h-5 text-green-400"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                Mudah Digunakan
+            {/* Trust Metrics */}
+            <div className="mt-12 pt-8 border-t border-slate-800/50 grid grid-cols-3 gap-8">
+              <div>
+                <div className="text-2xl sm:text-3xl font-bold text-white mb-1">99.9%</div>
+                <div className="text-sm text-slate-500">Akurasi Wajah</div>
               </div>
-              <div className="flex items-center gap-2">
-                <svg
-                  className="w-4 h-4 sm:w-5 sm:h-5 text-green-400"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                Setup Cepat
+              <div>
+                <div className="text-2xl sm:text-3xl font-bold text-white mb-1">&lt;1s</div>
+                <div className="text-sm text-slate-500">Kecepatan Scan</div>
               </div>
-              <div className="flex items-center gap-2">
-                <svg
-                  className="w-4 h-4 sm:w-5 sm:h-5 text-green-400"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                Support 24/7
+              <div>
+                <div className="text-2xl sm:text-3xl font-bold text-white mb-1">24/7</div>
+                <div className="text-sm text-slate-500">Real-time Data</div>
               </div>
             </div>
           </div>
 
-          {/* Right Content - Dashboard Preview - Clean & Professional */}
-          <div className="relative mt-12 lg:mt-0">
-            <div className="relative max-w-md mx-auto lg:max-w-none space-y-3 sm:space-y-4">
-              {/* Top Cards Row - Check-in & Check-out */}
-              <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                {/* Check-in Card */}
-                <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 animate-float hover:shadow-xl transition-shadow">
-                  <div className="flex items-center gap-2 mb-2 sm:mb-3">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-gray-500">Check-in</p>
-                      <p className="text-sm sm:text-base font-bold text-gray-900">08:00</p>
-                    </div>
+          {/* Right Content - 3D Dashboard Preview */}
+          <div className={`flex-1 relative perspective-1000 transition-all duration-1000 delay-300 transform ${mounted ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'}`}>
+            <div className="relative transform rotate-y-[-5deg] rotate-x-[5deg] hover:rotate-0 transition-transform duration-500 ease-out preserve-3d">
+              {/* Main Dashboard Card */}
+              <div className="relative bg-slate-900/90 backdrop-blur-xl border border-slate-700/50 rounded-3xl shadow-2xl overflow-hidden">
+                {/* Header Bar */}
+                <div className="h-12 bg-slate-800/50 border-b border-slate-700/50 flex items-center px-4 gap-2">
+                  <div className="flex gap-2">
+                    <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50"></div>
+                    <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/50"></div>
+                    <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50"></div>
                   </div>
-                  <div className="text-xs text-gray-600">Akurasi: 99.8%</div>
-                </div>
-
-                {/* Check-out Card */}
-                <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 animate-float animation-delay-2000 hover:shadow-xl transition-shadow">
-                  <div className="flex items-center gap-2 mb-2 sm:mb-3">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                      </svg>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-gray-500">Check-out</p>
-                      <p className="text-sm sm:text-base font-bold text-gray-900">17:00</p>
-                    </div>
-                  </div>
-                  <div className="text-xs text-gray-600">Durasi: 9 jam</div>
-                </div>
-              </div>
-
-              {/* Main Dashboard - Attendance Chart */}
-              <div className="relative bg-white rounded-2xl sm:rounded-3xl shadow-xl p-4 sm:p-5 lg:p-6 border border-gray-100">
-                {/* Header */}
-                <div className="flex items-center justify-between mb-4 sm:mb-5">
-                  <div>
-                    <h3 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900">Statistik Kehadiran</h3>
-                    <p className="text-xs text-gray-500">Minggu ini</p>
-                  </div>
-                  <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 bg-green-100 rounded-lg">
-                    <svg className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clipRule="evenodd" />
-                    </svg>
-                    <span className="text-xs sm:text-sm font-bold text-green-700">95%</span>
+                  <div className="ml-4 px-3 py-1 bg-slate-950/50 rounded-full text-xs text-slate-500 flex-1 text-center font-mono">
+                    absensi-dashboard.app
                   </div>
                 </div>
 
-                {/* Combined Bar + Line Chart */}
-                <div className="mb-5 sm:mb-6">
-                  <div className="relative">
-                    {/* Bar Chart Container with proper spacing */}
-                    <div className="flex items-end justify-between gap-3 sm:gap-4 lg:gap-5 h-36 sm:h-44 lg:h-52 relative px-2">
-                      {/* Senin - 75% */}
-                      <div className="flex-1 flex flex-col items-center gap-2.5 sm:gap-3 relative group">
-                        <div className="w-full bg-gradient-to-t from-blue-500 to-blue-400 rounded-t-xl hover:from-blue-600 hover:to-blue-500 transition-all cursor-pointer shadow-lg relative" style={{ height: '75%' }}>
-                          {/* Percentage Label - Larger & Clearer */}
-                          <div className="absolute inset-x-0 top-3 sm:top-4 text-center">
-                            <span className="text-sm sm:text-base lg:text-lg font-extrabold text-white drop-shadow-lg">75%</span>
-                          </div>
-                          {/* Dot for line chart */}
-                          <div className="absolute -top-2.5 sm:-top-3 left-1/2 transform -translate-x-1/2 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-purple-500 border-2 sm:border-3 border-white rounded-full shadow-lg z-10"></div>
-                          {/* Tooltip on hover */}
-                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
-                            <div className="bg-gray-900 text-white text-xs sm:text-sm px-3 py-1.5 rounded-lg shadow-xl whitespace-nowrap">
-                              Senin: 15 Hadir
-                            </div>
-                          </div>
-                        </div>
-                        <span className="text-xs sm:text-sm font-semibold text-gray-700">Sen</span>
+                {/* Dashboard Content */}
+                <div className="p-6 space-y-6">
+                  {/* Stats Row */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-700/30">
+                      <div className="text-slate-400 text-xs mb-1">Total Kehadiran</div>
+                      <div className="text-2xl font-bold text-white">1,248</div>
+                      <div className="text-green-400 text-xs mt-1 flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                        +12% vs kemarin
                       </div>
-
-                      {/* Selasa - 85% */}
-                      <div className="flex-1 flex flex-col items-center gap-2.5 sm:gap-3 relative group">
-                        <div className="w-full bg-gradient-to-t from-blue-500 to-blue-400 rounded-t-xl hover:from-blue-600 hover:to-blue-500 transition-all cursor-pointer shadow-lg relative" style={{ height: '85%' }}>
-                          <div className="absolute inset-x-0 top-3 sm:top-4 text-center">
-                            <span className="text-sm sm:text-base lg:text-lg font-extrabold text-white drop-shadow-lg">85%</span>
-                          </div>
-                          <div className="absolute -top-2.5 sm:-top-3 left-1/2 transform -translate-x-1/2 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-purple-500 border-2 sm:border-3 border-white rounded-full shadow-lg z-10"></div>
-                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
-                            <div className="bg-gray-900 text-white text-xs sm:text-sm px-3 py-1.5 rounded-lg shadow-xl whitespace-nowrap">
-                              Selasa: 17 Hadir
-                            </div>
-                          </div>
-                        </div>
-                        <span className="text-xs sm:text-sm font-semibold text-gray-700">Sel</span>
-                      </div>
-
-                      {/* Rabu - 65% */}
-                      <div className="flex-1 flex flex-col items-center gap-2.5 sm:gap-3 relative group">
-                        <div className="w-full bg-gradient-to-t from-blue-500 to-blue-400 rounded-t-xl hover:from-blue-600 hover:to-blue-500 transition-all cursor-pointer shadow-lg relative" style={{ height: '65%' }}>
-                          <div className="absolute inset-x-0 top-3 sm:top-4 text-center">
-                            <span className="text-sm sm:text-base lg:text-lg font-extrabold text-white drop-shadow-lg">65%</span>
-                          </div>
-                          <div className="absolute -top-2.5 sm:-top-3 left-1/2 transform -translate-x-1/2 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-purple-500 border-2 sm:border-3 border-white rounded-full shadow-lg z-10"></div>
-                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
-                            <div className="bg-gray-900 text-white text-xs sm:text-sm px-3 py-1.5 rounded-lg shadow-xl whitespace-nowrap">
-                              Rabu: 13 Hadir
-                            </div>
-                          </div>
-                        </div>
-                        <span className="text-xs sm:text-sm font-semibold text-gray-700">Rab</span>
-                      </div>
-
-                      {/* Kamis - 95% (Highlighted) */}
-                      <div className="flex-1 flex flex-col items-center gap-2.5 sm:gap-3 relative group">
-                        <div className="w-full bg-gradient-to-t from-indigo-600 to-indigo-500 rounded-t-xl hover:from-indigo-700 hover:to-indigo-600 transition-all cursor-pointer shadow-xl relative" style={{ height: '95%' }}>
-                          <div className="absolute inset-x-0 top-3 sm:top-4 text-center">
-                            <span className="text-sm sm:text-base lg:text-lg font-extrabold text-white drop-shadow-lg">95%</span>
-                          </div>
-                          <div className="absolute -top-2.5 sm:-top-3 left-1/2 transform -translate-x-1/2 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-purple-500 border-2 sm:border-3 border-white rounded-full shadow-lg z-10"></div>
-                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
-                            <div className="bg-gray-900 text-white text-xs sm:text-sm px-3 py-1.5 rounded-lg shadow-xl whitespace-nowrap">
-                              Kamis: 19 Hadir ⭐
-                            </div>
-                          </div>
-                        </div>
-                        <span className="text-xs sm:text-sm font-semibold text-gray-700">Kam</span>
-                      </div>
-
-                      {/* Jumat - 80% */}
-                      <div className="flex-1 flex flex-col items-center gap-2.5 sm:gap-3 relative group">
-                        <div className="w-full bg-gradient-to-t from-blue-500 to-blue-400 rounded-t-xl hover:from-blue-600 hover:to-blue-500 transition-all cursor-pointer shadow-lg relative" style={{ height: '80%' }}>
-                          <div className="absolute inset-x-0 top-3 sm:top-4 text-center">
-                            <span className="text-sm sm:text-base lg:text-lg font-extrabold text-white drop-shadow-lg">80%</span>
-                          </div>
-                          <div className="absolute -top-2.5 sm:-top-3 left-1/2 transform -translate-x-1/2 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-purple-500 border-2 sm:border-3 border-white rounded-full shadow-lg z-10"></div>
-                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
-                            <div className="bg-gray-900 text-white text-xs sm:text-sm px-3 py-1.5 rounded-lg shadow-xl whitespace-nowrap">
-                              Jumat: 16 Hadir
-                            </div>
-                          </div>
-                        </div>
-                        <span className="text-xs sm:text-sm font-semibold text-gray-700">Jum</span>
-                      </div>
-
-                      {/* SVG Line connecting dots */}
-                      <svg className="absolute inset-0 pointer-events-none" style={{ width: '100%', height: '100%' }}>
-                        {/* Line path - responsive calculation */}
-                        <path
-                          d="M 10% 25%, L 30% 15%, L 50% 35%, L 70% 5%, L 90% 20%"
-                          stroke="url(#lineGradient)"
-                          strokeWidth="3"
-                          fill="none"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className="drop-shadow-lg"
-                        />
-                        {/* Gradient definition */}
-                        <defs>
-                          <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" style={{ stopColor: '#7c3aed', stopOpacity: 1 }} />
-                            <stop offset="50%" style={{ stopColor: '#a855f7', stopOpacity: 1 }} />
-                            <stop offset="100%" style={{ stopColor: '#c084fc', stopOpacity: 1 }} />
-                          </linearGradient>
-                        </defs>
-                      </svg>
                     </div>
-
-                    {/* Legend - Enhanced */}
-                    <div className="flex items-center justify-center gap-6 sm:gap-8 mt-4 sm:mt-5 pb-1">
-                      <div className="flex items-center gap-2 sm:gap-2.5">
-                        <div className="w-4 h-4 sm:w-5 sm:h-5 bg-gradient-to-r from-blue-500 to-blue-400 rounded shadow-sm"></div>
-                        <span className="text-xs sm:text-sm font-semibold text-gray-700">Jumlah Hadir</span>
-                      </div>
-                      <div className="flex items-center gap-2 sm:gap-2.5">
-                        <div className="w-4 h-4 sm:w-5 sm:h-5 bg-purple-500 rounded-full shadow-sm"></div>
-                        <span className="text-xs sm:text-sm font-semibold text-gray-700">Trend Kehadiran</span>
+                    <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-700/30">
+                      <div className="text-slate-400 text-xs mb-1">Tepat Waktu</div>
+                      <div className="text-2xl font-bold text-white">98.5%</div>
+                      <div className="text-primary-400 text-xs mt-1 flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                        Excellent
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Stats Summary */}
-                <div className="grid grid-cols-3 gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-gray-200">
-                  <div className="text-center">
-                    <p className="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600">48</p>
-                    <p className="text-xs text-gray-500">Hadir</p>
+                  {/* Chart Area */}
+                  <div className="bg-slate-800/30 p-4 rounded-2xl border border-slate-700/30 h-48 relative overflow-hidden group">
+                    <div className="flex justify-between items-center mb-4">
+                      <div className="text-sm font-semibold text-white">Aktivitas Mingguan</div>
+                      <div className="text-xs text-slate-500">Last 7 days</div>
+                    </div>
+                    <div className="flex items-end justify-between h-32 gap-2 px-2">
+                      {[40, 70, 45, 90, 65, 85, 95].map((height, i) => (
+                        <div key={i} className="w-full bg-slate-700/30 rounded-t-lg relative group-hover:bg-slate-700/40 transition-colors overflow-hidden">
+                          <div 
+                            className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-primary-600 to-primary-400 rounded-t-lg transition-all duration-1000 ease-out"
+                            style={{ height: `${mounted ? height : 0}%` }}
+                          ></div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="text-center">
-                    <p className="text-lg sm:text-xl lg:text-2xl font-bold text-green-600">95%</p>
-                    <p className="text-xs text-gray-500">Akurasi</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-lg sm:text-xl lg:text-2xl font-bold text-purple-600">2</p>
-                    <p className="text-xs text-gray-500">Izin</p>
+
+                  {/* Live Verification Feed */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm font-semibold text-white">Live Verification Feed</div>
+                      <div className="flex items-center gap-2">
+                        <span className="relative flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                        </span>
+                        <span className="text-xs text-green-400 font-medium">Live System</span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      {[
+                        { user: 'Andi D.', action: 'Face Verified', status: 'Success (99.9%)', time: 'Just now', icon: 'face', color: 'green' },
+                        { user: 'Andi D.', action: 'Location Check', status: 'Valid (Office)', time: 'Just now', icon: 'location', color: 'blue' },
+                        { user: 'Rina K.', action: 'Face Verified', status: 'Success (99.8%)', time: '2m ago', icon: 'face', color: 'green' },
+                      ].map((item, i) => (
+                        <div key={i} className="flex items-center gap-3 bg-slate-800/30 p-3 rounded-xl border border-slate-700/30 hover:bg-slate-800/50 transition-colors">
+                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                            item.color === 'green' ? 'bg-green-500/10 text-green-400' : 'bg-blue-500/10 text-blue-400'
+                          }`}>
+                            {item.icon === 'face' ? (
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                            ) : (
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                              </svg>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-0.5">
+                              <div className="text-sm font-medium text-white truncate">{item.action}</div>
+                              <div className="text-xs text-slate-500">{item.time}</div>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs">
+                              <span className="text-slate-400">{item.user}</span>
+                              <span className="text-slate-600">•</span>
+                              <span className={item.color === 'green' ? 'text-green-400' : 'text-blue-400'}>{item.status}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -340,89 +202,6 @@ export default function Hero() {
           </div>
         </div>
       </div>
-
-      {/* Scroll Indicator */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce hidden sm:block">
-        <svg
-          className="w-6 h-6 text-white/50"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 14l-7 7m0 0l-7-7m7 7V3"
-          />
-        </svg>
-      </div>
-
-      <style jsx>{`
-        @keyframes blob {
-          0%, 100% {
-            transform: translate(0, 0) scale(1);
-          }
-          25% {
-            transform: translate(10px, -25px) scale(1.05);
-          }
-          50% {
-            transform: translate(-10px, 10px) scale(0.95);
-          }
-          75% {
-            transform: translate(25px, 25px) scale(1.02);
-          }
-        }
-
-        @keyframes float {
-          0%, 100% {
-            transform: translateY(0px) scale(1);
-          }
-          50% {
-            transform: translateY(-15px) scale(1.02);
-          }
-        }
-
-        .animate-blob {
-          animation: blob 8s ease-in-out infinite;
-        }
-
-        .animate-float {
-          animation: float 4s ease-in-out infinite;
-        }
-
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-
-        .animation-delay-4000 {
-          animation-delay: 4s;
-        }
-
-        .bg-grid-white\/5 {
-          background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-          background-size: 30px 30px;
-        }
-
-        /* Desktop: Larger grid */
-        @media (min-width: 640px) {
-          .bg-grid-white\/5 {
-            background-image: linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-            background-size: 50px 50px;
-          }
-        }
-
-        /* Reduce motion for users who prefer it */
-        @media (prefers-reduced-motion: reduce) {
-          .animate-blob,
-          .animate-float,
-          .animate-bounce {
-            animation: none;
-          }
-        }
-      `}</style>
     </section>
   );
 }

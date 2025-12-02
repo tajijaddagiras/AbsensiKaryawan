@@ -26,7 +26,24 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
+# local env files
 .env*.local
+.env
+
+# SQLite Database (not used in production)
+*.db
+*.db-journal
+prisma/*.db
+prisma/*.db-journal
+dev.db
+
+# Logs
+logs
+*.log
+
+# Face encodings (sensitive data)
+public/face-encodings/
+uploads/
 
 # vercel
 .vercel

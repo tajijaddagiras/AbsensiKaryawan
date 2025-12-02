@@ -1,25 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseServer } from '@/lib/supabase';
+import { prisma } from '@/lib/prisma';
 
-// GET /api/holidays - Get all holidays
+// GET /api/holidays
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const date = searchParams.get('date'); // Optional: check specific date
+    const date = searchParams.get('date');
 
-    let query = supabaseServer
-      .from('holidays')
-      .select('*')
-      .eq('is_active', true)
-      .order('date', { ascending: true });
+    const where: any = { isActive: true };
 
     if (date) {
-      query = query.eq('date', date);
+      where.date = new Date(date);
     }
 
-    const { data, error } = await query;
-
-    if (error) throw error;
+    const data = await prisma.holiday.findMany({
+      where,
+      orderBy: { date: 'asc' },
+    });
 
     return NextResponse.json({ 
       success: true, 
@@ -33,7 +30,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/holidays - Create new holiday
+// POST /api/holidays
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -53,19 +50,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { data, error } = await supabaseServer
-      .from('holidays')
-      .insert({
+    const data = await prisma.holiday.create({
+      data: {
         name,
-        date,
+        date: new Date(date),
         type,
         description: description || null,
-        is_active: true
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
+        isActive: true,
+      },
+    });
 
     return NextResponse.json({ 
       success: true, 
@@ -80,7 +73,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// PUT /api/holidays - Update holiday
+// PUT /api/holidays
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
@@ -93,12 +86,10 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const updateData: any = {
-      updated_at: new Date().toISOString()
-    };
+    const updateData: any = {};
 
     if (name !== undefined) updateData.name = name;
-    if (date !== undefined) updateData.date = date;
+    if (date !== undefined) updateData.date = new Date(date);
     if (type !== undefined) {
       if (!['national', 'company'].includes(type)) {
         return NextResponse.json(
@@ -109,16 +100,12 @@ export async function PUT(request: NextRequest) {
       updateData.type = type;
     }
     if (description !== undefined) updateData.description = description;
-    if (is_active !== undefined) updateData.is_active = is_active;
+    if (is_active !== undefined) updateData.isActive = is_active;
 
-    const { data, error } = await supabaseServer
-      .from('holidays')
-      .update(updateData)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
+    const data = await prisma.holiday.update({
+      where: { id },
+      data: updateData,
+    });
 
     return NextResponse.json({ 
       success: true, 
@@ -133,7 +120,7 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-// DELETE /api/holidays - Delete holiday
+// DELETE /api/holidays
 export async function DELETE(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
@@ -146,12 +133,9 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const { error } = await supabaseServer
-      .from('holidays')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
+    await prisma.holiday.delete({
+      where: { id },
+    });
 
     return NextResponse.json({ 
       success: true,
@@ -164,4 +148,3 @@ export async function DELETE(request: NextRequest) {
     );
   }
 }
-

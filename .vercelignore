@@ -1,0 +1,38 @@
+# Dependencies
+node_modules
+
+# Local environment files
+.env
+.env*.local
+
+# SQLite database (not used in production)
+*.db
+*.db-journal
+prisma/*.db
+prisma/*.db-journal
+
+# Development files
+.vscode
+.idea
+
+# Testing
+coverage
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build artifacts (will be rebuilt)
+.next
+out
+dist
+build
