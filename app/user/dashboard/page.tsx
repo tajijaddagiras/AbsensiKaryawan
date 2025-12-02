@@ -141,10 +141,15 @@ export default function UserDashboard() {
     return name.substring(0, 2).toUpperCase();
   };
 
-  const formatTime = (dateString: string) => {
+  const formatTime = (dateString: string | null | undefined) => {
     if (!dateString) return '-';
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return '-';
+      return date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+    } catch (e) {
+      return '-';
+    }
   };
 
   // Helper function: Format schedule time dari HH:MM:SS menjadi HH:MM
@@ -369,11 +374,12 @@ export default function UserDashboard() {
                   <p className="text-xs text-slate-500 font-medium">Status Hari Ini</p>
                   <p className="text-2xl font-bold text-slate-900">
                     {todayAttendance ? (
-                      todayAttendance.check_out_time ? 'Selesai' : 'Hadir'
+                      todayAttendance.checkOutTime || todayAttendance.check_out_time ? 'Selesai' : 
+                      (todayAttendance.status === 'late' ? 'Terlambat' : 'Hadir')
                     ) : 'Belum Absen'}
                   </p>
                   <p className="text-xs text-slate-500 mt-1">
-                    {todayAttendance ? formatTime(todayAttendance.check_in_time) : 'Belum check-in'}
+                    {todayAttendance ? formatTime(todayAttendance.checkInTime || todayAttendance.check_in_time) : 'Belum check-in'}
                   </p>
                 </div>
               </div>
@@ -390,7 +396,7 @@ export default function UserDashboard() {
                 <div className="flex-1">
                   <p className="text-xs text-slate-500 font-medium">Check-in</p>
                   <p className="text-2xl font-bold text-slate-900">
-                    {todayAttendance ? formatTime(todayAttendance.check_in_time) : '-'}
+                    {todayAttendance ? formatTime(todayAttendance.checkInTime || todayAttendance.check_in_time) : '-'}
                   </p>
                   <p className="text-xs text-slate-500 mt-1">Masuk kantor</p>
                 </div>
@@ -408,7 +414,7 @@ export default function UserDashboard() {
                 <div className="flex-1">
                   <p className="text-xs text-slate-500 font-medium">Check-out</p>
                   <p className="text-2xl font-bold text-slate-900">
-                    {todayAttendance?.check_out_time ? formatTime(todayAttendance.check_out_time) : '-'}
+                    {todayAttendance?.checkOutTime || todayAttendance?.check_out_time ? formatTime(todayAttendance.checkOutTime || todayAttendance.check_out_time) : '-'}
                   </p>
                   <p className="text-xs text-slate-500 mt-1">Pulang kantor</p>
                 </div>

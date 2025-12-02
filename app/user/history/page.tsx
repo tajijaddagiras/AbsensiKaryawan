@@ -95,10 +95,15 @@ export default function UserHistoryPage() {
     return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
   };
 
-  const formatTime = (dateString: string) => {
+  const formatTime = (dateString: string | null | undefined) => {
     if (!dateString) return '-';
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return '-';
+      return date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+    } catch (e) {
+      return '-';
+    }
   };
 
   // Helper function: Klasifikasi status detail berdasarkan data yang ada
@@ -127,7 +132,7 @@ export default function UserHistoryPage() {
   const filteredRecords = useMemo(() => {
     const now = new Date();
     return attendanceHistory.filter((record) => {
-      const recordDate = new Date(record.check_in_time);
+      const recordDate = new Date(record.checkInTime || record.check_in_time);
       const diffDays = Math.floor((now.getTime() - recordDate.getTime()) / (1000 * 60 * 60 * 24));
       
       if (filter === '7days') return diffDays <= 7;
@@ -358,7 +363,7 @@ export default function UserHistoryPage() {
                         }`}>
                           {record.status === 'present' ? '✓ Hadir' : record.status === 'late' ? '⏰ Terlambat' : '✕ Absen'}
                         </div>
-                        <p className="text-sm font-semibold text-slate-900">{formatDate(record.check_in_time)}</p>
+                        <p className="text-sm font-semibold text-slate-900">{formatDate(record.checkInTime || record.check_in_time)}</p>
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
@@ -369,7 +374,7 @@ export default function UserHistoryPage() {
                             </svg>
                             Check-in
                           </p>
-                          <p className="text-lg font-bold text-slate-900">{formatTime(record.check_in_time)}</p>
+                          <p className="text-lg font-bold text-slate-900">{formatTime(record.checkInTime || record.check_in_time)}</p>
                         </div>
 
                         <div className="bg-slate-50 rounded-lg p-3 border border-slate-100">
@@ -380,7 +385,7 @@ export default function UserHistoryPage() {
                             Check-out
                           </p>
                           <p className="text-lg font-bold text-slate-900">
-                            {record.check_out_time ? formatTime(record.check_out_time) : '-'}
+                            {record.checkOutTime || record.check_out_time ? formatTime(record.checkOutTime || record.check_out_time) : '-'}
                           </p>
                         </div>
                       </div>
