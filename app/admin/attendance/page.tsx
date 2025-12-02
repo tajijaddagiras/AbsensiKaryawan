@@ -525,8 +525,8 @@ export default function AttendancePage() {
     
     const query = debouncedSearchQuery.toLowerCase();
     return attendance.filter(record => 
-      record.employee.full_name.toLowerCase().includes(query) ||
-      record.employee.employee_code.toLowerCase().includes(query)
+      record.employee.fullName.toLowerCase().includes(query) ||
+      record.employee.employeeCode.toLowerCase().includes(query)
     );
   }, [attendance, debouncedSearchQuery]);
 
@@ -573,8 +573,8 @@ export default function AttendancePage() {
 
       return {
         'No': index + 1,
-        'NIK': record.employee.employee_code,
-        'Nama Lengkap': record.employee.full_name,
+        'NIK': record.employee.employeeCode,
+        'Nama Lengkap': record.employee.fullName,
         'Tanggal': checkIn.date,
         'Jam Masuk': checkIn.time,
         'Jam Tepat Waktu': statusDetail.onTimeRange,
@@ -702,8 +702,8 @@ export default function AttendancePage() {
       
       return [
         index + 1,
-        record.employee.employee_code,
-        record.employee.full_name,
+        record.employee.employeeCode,
+        record.employee.fullName,
         checkIn.date,
         checkIn.time,
         statusDetail.onTimeRange,
@@ -1382,7 +1382,7 @@ export default function AttendancePage() {
                     <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-xl border-2 border-white/40 shadow-lg flex-shrink-0 overflow-hidden">
                       <Image 
                         src={selectedRecord.employee.avatar_url} 
-                        alt={selectedRecord.employee.full_name || 'Employee Avatar'}
+                        alt={selectedRecord.employee.fullName || 'Employee Avatar'}
                         fill
                         className="object-cover"
                         sizes="(max-width: 640px) 48px, 56px"
@@ -1391,12 +1391,12 @@ export default function AttendancePage() {
                     </div>
                   ) : (
                     <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-white/20 backdrop-blur-sm border-2 border-white/40 flex items-center justify-center text-white font-bold text-lg shadow-lg flex-shrink-0">
-                      {selectedRecord.employee.full_name.substring(0, 2).toUpperCase()}
+                      {selectedRecord.employee.fullName.substring(0, 2).toUpperCase()}
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <h2 className="text-base sm:text-lg font-bold text-white truncate">{selectedRecord.employee.full_name}</h2>
-                    <p className="text-xs text-white/80 truncate">{selectedRecord.employee.employee_code}</p>
+                    <h2 className="text-base sm:text-lg font-bold text-white truncate">{selectedRecord.employee.fullName}</h2>
+                    <p className="text-xs text-white/80 truncate">{selectedRecord.employee.employeeCode}</p>
                   </div>
                 </div>
                 <button
@@ -1463,8 +1463,8 @@ export default function AttendancePage() {
                   {/* Check Out */}
                         <div>
                     <div className="flex items-center gap-2 mb-2">
-                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${selectedRecord.check_out_time ? 'bg-indigo-100' : 'bg-slate-100'}`}>
-                        <svg className={`w-4 h-4 ${selectedRecord.check_out_time ? 'text-indigo-600' : 'text-slate-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${selectedRecord.checkOutTime ? 'bg-indigo-100' : 'bg-slate-100'}`}>
+                        <svg className={`w-4 h-4 ${selectedRecord.checkOutTime ? 'text-indigo-600' : 'text-slate-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                         </svg>
                       </div>
