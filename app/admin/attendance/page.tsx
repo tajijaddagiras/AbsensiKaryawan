@@ -35,7 +35,7 @@ interface AttendanceRecord {
   status: string;
   face_match_score?: number;
   notes?: string | null;
-  employees: {
+  employee: {
     full_name: string;
     employee_code: string;
     avatar_url?: string;
@@ -69,7 +69,6 @@ export default function AttendancePage() {
   
   // Schedule data state
   const [schedules, setSchedules] = useState<any[]>([]);
-  
   const currentDate = new Date().toLocaleDateString('id-ID', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
   });
@@ -512,6 +511,25 @@ export default function AttendancePage() {
     }
   };
 
+  // Filter attendance berdasarkan search query
+  const filteredAttendance = useMemo(() => {
+    if (!debouncedSearchQuery) {
+      return attendance;
+    }
+    
+    const query = debouncedSearchQuery.toLowerCase();
+    return attendance.filter(record => 
+      record.employee.full_name.toLowerCase().includes(query) ||
+      record.employee.employee_code.toLowerCase().includes(query)
+    );
+  }, [attendance, debouncedSearchQuery]);
+
+  // Handle view detail
+  const handleViewDetail = (record: AttendanceRecord) => {
+    setSelectedRecord(record);
+    setShowDetailModal(true);
+  };
+
   // Excel export function - Lazy load XLSX saat akan digunakan
   const handleExportExcel = async () => {
     if (filteredAttendance.length === 0) {
@@ -549,8 +567,8 @@ export default function AttendancePage() {
 
       return {
         'No': index + 1,
-        'NIK': record.employees.employee_code,
-        'Nama Lengkap': record.employees.full_name,
+        'NIK': record.employee.employee_code,
+        'Nama Lengkap': record.employee.full_name,
         'Tanggal': checkIn.date,
         'Jam Masuk': checkIn.time,
         'Jam Tepat Waktu': statusDetail.onTimeRange,
@@ -678,8 +696,8 @@ export default function AttendancePage() {
       
       return [
         index + 1,
-        record.employees.employee_code,
-        record.employees.full_name,
+        record.employee.employee_code,
+        record.employee.full_name,
         checkIn.date,
         checkIn.time,
         statusDetail.onTimeRange,
@@ -768,30 +786,7 @@ export default function AttendancePage() {
     // Save PDF
     doc.save(`${filename}.pdf`);
     
-    // Close menu after download
-    setShowDownloadMenu(false);
   };
-
-  // Memoize handler untuk menghindari re-creation pada setiap render
-  const handleViewDetail = useCallback((record: AttendanceRecord) => {
-    setSelectedRecord(record);
-    setShowDetailModal(true);
-  }, []);
-
-  // Filter attendance by search query (menggunakan debounced untuk optimasi)
-  // Memoize filtered list untuk menghindari re-filtering yang tidak perlu
-  const filteredAttendance = useMemo(() => {
-    return attendance.filter((record) => {
-      if (!debouncedSearchQuery.trim()) return true; // Show all if no search query
-      
-      const fullName = record.employees?.full_name?.toLowerCase() || '';
-      const employeeCode = record.employees?.employee_code?.toLowerCase() || '';
-      const query = debouncedSearchQuery.toLowerCase().trim();
-      
-      // Search by name or employee code (NIK)
-      return fullName.includes(query) || employeeCode.includes(query);
-    });
-  }, [attendance, debouncedSearchQuery]);
 
   // Calculate stats dengan klasifikasi status detail
   // Gunakan useMemo untuk memastikan calculation hanya dilakukan setelah data ready
@@ -822,7 +817,7 @@ export default function AttendancePage() {
       
       const sampleRecords = filteredAttendance.slice(0, 5).map(r => ({
         id: r.id,
-        employee: r.employees.full_name,
+        employee: r.employee.full_name,
         notes: r.notes || '(null)',
         status: r.status,
         checkInTime: r.check_in_time,
@@ -855,7 +850,7 @@ export default function AttendancePage() {
       if (lateRecords.length > 0) {
         console.log('🔍 Late Records Details:', lateRecords.map(r => ({
           id: r.id,
-          employee: r.employees.full_name,
+          employee: r.employee.full_name,
           notes: r.notes || '(null)',
           status: r.status,
           checkInTime: r.check_in_time,
@@ -1280,11 +1275,11 @@ export default function AttendancePage() {
                   <div className="bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 p-3 sm:p-4">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-2.5 flex-1 min-w-0">
-                        {record.employees.avatar_url ? (
+                        {record.employee.avatar_url ? (
                           <div className="relative w-12 h-12 sm:w-13 sm:h-13 rounded-lg border-2 border-white/30 shadow-lg flex-shrink-0 overflow-hidden">
                             <Image 
-                              src={record.employees.avatar_url} 
-                              alt={record.employees.full_name}
+                              src={record.employee.avatar_url} 
+                              alt={record.employee.full_name || 'Employee Avatar'}
                               fill
                               className="object-cover"
                               sizes="(max-width: 640px) 48px, 52px"
@@ -1293,12 +1288,12 @@ export default function AttendancePage() {
                           </div>
                         ) : (
                           <div className="w-12 h-12 sm:w-13 sm:h-13 rounded-lg bg-white/20 backdrop-blur-sm border-2 border-white/30 flex items-center justify-center text-white font-bold text-base sm:text-lg shadow-lg flex-shrink-0">
-                            {record.employees.full_name.substring(0, 2).toUpperCase()}
+                            {record.employee.full_name.substring(0, 2).toUpperCase()}
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-sm sm:text-base font-bold text-white truncate">{record.employees.full_name}</h3>
-                          <p className="text-xs text-white/80 truncate">{record.employees.employee_code}</p>
+                          <h3 className="text-sm sm:text-base font-bold text-white truncate">{record.employee.full_name}</h3>
+                          <p className="text-xs text-white/80 truncate">{record.employee.employee_code}</p>
                         </div>
                       </div>
                       {/* Status Badge - Compact dengan style untuk gradient header */}
@@ -1377,11 +1372,11 @@ export default function AttendancePage() {
             <div className="bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 p-4 sm:p-5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  {selectedRecord.employees.avatar_url ? (
+                  {selectedRecord.employee.avatar_url ? (
                     <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-xl border-2 border-white/40 shadow-lg flex-shrink-0 overflow-hidden">
                       <Image 
-                        src={selectedRecord.employees.avatar_url} 
-                        alt={selectedRecord.employees.full_name}
+                        src={selectedRecord.employee.avatar_url} 
+                        alt={selectedRecord.employee.full_name || 'Employee Avatar'}
                         fill
                         className="object-cover"
                         sizes="(max-width: 640px) 48px, 56px"
@@ -1390,12 +1385,12 @@ export default function AttendancePage() {
                     </div>
                   ) : (
                     <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-white/20 backdrop-blur-sm border-2 border-white/40 flex items-center justify-center text-white font-bold text-lg shadow-lg flex-shrink-0">
-                      {selectedRecord.employees.full_name.substring(0, 2).toUpperCase()}
+                      {selectedRecord.employee.full_name.substring(0, 2).toUpperCase()}
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <h2 className="text-base sm:text-lg font-bold text-white truncate">{selectedRecord.employees.full_name}</h2>
-                    <p className="text-xs text-white/80 truncate">{selectedRecord.employees.employee_code}</p>
+                    <h2 className="text-base sm:text-lg font-bold text-white truncate">{selectedRecord.employee.full_name}</h2>
+                    <p className="text-xs text-white/80 truncate">{selectedRecord.employee.employee_code}</p>
                   </div>
                 </div>
                 <button

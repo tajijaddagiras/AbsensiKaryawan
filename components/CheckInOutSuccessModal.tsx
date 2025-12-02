@@ -16,6 +16,11 @@ interface CheckInOutSuccessModalProps {
     timeStr: string;
     dateStr: string;
   };
+  details?: {
+    status: string;
+    statusDetail: string;
+    lateDuration: number;
+  };
   onClose: () => void;
 }
 
@@ -26,6 +31,7 @@ export default function CheckInOutSuccessModal({
   threshold,
   location,
   time,
+  details,
   onClose
 }: CheckInOutSuccessModalProps) {
   const [show, setShow] = useState(false);

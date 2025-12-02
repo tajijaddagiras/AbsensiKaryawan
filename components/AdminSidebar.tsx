@@ -99,7 +99,8 @@ export default function AdminSidebar({ isSidebarOpen: externalSidebarOpen, setIs
           ...user,
           username: data.updatedUsername || username,
           email: data.updatedEmail || email,
-          avatar_url: avatarUrl,
+          avatarUrl: avatarUrl, // Use camelCase to match Prisma
+          avatar_url: avatarUrl, // Keep snake_case for backward compatibility
         };
         localStorage.setItem('user', JSON.stringify(updatedUser));
         setUser(updatedUser);
@@ -160,9 +161,9 @@ export default function AdminSidebar({ isSidebarOpen: externalSidebarOpen, setIs
               onClick={handleOpenProfile}
               className="w-full flex items-center gap-3 p-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 shadow-sm transition-all group"
             >
-              {user?.avatar_url ? (
+              {user?.avatarUrl || user?.avatar_url ? (
                 <img
-                  src={user.avatar_url}
+                  src={user?.avatarUrl || user?.avatar_url}
                   alt="Profile"
                   className="w-11 h-11 rounded-full object-cover border-2 border-blue-200 shadow-sm"
                   onError={(e) => {
@@ -171,7 +172,7 @@ export default function AdminSidebar({ isSidebarOpen: externalSidebarOpen, setIs
                   }}
                 />
               ) : null}
-              <div className={`w-11 h-11 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-base shadow-sm ${user?.avatar_url ? 'hidden' : ''}`}>
+              <div className={`w-11 h-11 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-base shadow-sm ${user?.avatarUrl || user?.avatar_url ? 'hidden' : ''}`}>
                 {getInitials(user?.email || '')}
               </div>
               <div className="flex-1 text-left min-w-0">
@@ -235,8 +236,8 @@ export default function AdminSidebar({ isSidebarOpen: externalSidebarOpen, setIs
         <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowProfileModal(false)}>
           <div className="bg-white rounded-2xl max-w-sm w-full max-dvh-90 overflow-y-auto custom-scrollbar shadow-2xl animate-fadeIn" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 text-center">
-              {user?.avatar_url ? (
-                <img src={user.avatar_url} alt="Profile" className="w-24 h-24 rounded-full object-cover border-4 border-blue-500 mx-auto mb-4 shadow-lg" />
+              {user?.avatarUrl || user?.avatar_url ? (
+                <img src={user?.avatarUrl || user?.avatar_url} alt="Profile" className="w-24 h-24 rounded-full object-cover border-4 border-blue-500 mx-auto mb-4 shadow-lg" />
               ) : (
                 <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-3xl font-bold mx-auto mb-4 border-4 border-white shadow-lg">
                   {getInitials(user?.email || '')}

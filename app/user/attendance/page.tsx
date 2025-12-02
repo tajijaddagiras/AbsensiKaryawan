@@ -77,6 +77,11 @@ export default function AttendancePage() {
       timeStr: string;
       dateStr: string;
     };
+    details?: {
+      status: string;
+      statusDetail: string;
+      lateDuration: number;
+    };
   } | null>(null);
 
   // Check-in/Check-out error modal state
@@ -439,7 +444,12 @@ export default function AttendancePage() {
             time: {
               timeStr,
               dateStr
-            }
+            },
+            details: data.details ? {
+              status: data.details.status,
+              statusDetail: data.details.statusDetail,
+              lateDuration: data.details.lateDuration
+            } : undefined
           });
           setShowSuccessModal(true);
           fetchTodayAttendance();
@@ -482,7 +492,12 @@ export default function AttendancePage() {
             time: {
               timeStr,
               dateStr
-            }
+            },
+            details: data.details ? {
+              status: data.details.status,
+              statusDetail: data.details.statusDetail,
+              lateDuration: data.details.lateDuration
+            } : undefined
           });
           setShowSuccessModal(true);
         fetchTodayAttendance();
@@ -1176,6 +1191,7 @@ export default function AttendancePage() {
           threshold={successData.threshold}
           location={successData.location}
           time={successData.time}
+          details={successData.details}
           onClose={() => {
             setShowSuccessModal(false);
             setSuccessData(null);

@@ -110,7 +110,8 @@ async function updateProfileHandler(request: NextRequest) {
       success: true,
       message: 'Profile updated successfully',
       updatedUsername: usernameToUpdate || user.username,
-      updatedEmail: newEmail || user.email
+      updatedEmail: newEmail || user.email,
+      avatarUrl: avatarUrl !== undefined ? avatarUrl : user.avatarUrl
     });
   } catch (error: any) {
     console.error('Error updating profile:', error);
