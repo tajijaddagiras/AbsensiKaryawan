@@ -1,11 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Menu, X, Camera } from 'lucide-react';
+import { cn } from '@/lib/cn';
+import { useLanguage } from '@/lib/LanguageContext';
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const { t, language, setLanguage } = useLanguage();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -15,178 +20,155 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      const offset = 80; // Height of navbar + some padding
-      const bodyRect = document.body.getBoundingClientRect().top;
-      const elementRect = element.getBoundingClientRect().top;
-      const elementPosition = elementRect - bodyRect;
-      const offsetPosition = elementPosition - offset;
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
-      setIsMobileMenuOpen(false);
-    }
-  };
+  const navLinks = [
+    { name: t.nav.features, href: '#features' },
+    { name: t.nav.howItWorks, href: '#how-it-works' },
+    { name: t.nav.stats, href: '#stats' },
+  ];
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+      className={cn(
+        'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
         isScrolled
-          ? 'bg-slate-900/80 backdrop-blur-md shadow-lg border-b border-slate-800 py-3'
-          : 'bg-transparent py-5'
-      }`}
+          ? 'bg-white/90 backdrop-blur-md border-b border-slate-200 py-4 shadow-sm'
+          : 'bg-transparent py-6'
+      )}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center gap-3 group cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-            <div className="relative w-10 h-10 flex items-center justify-center bg-gradient-to-br from-primary-600 to-secondary-600 rounded-xl shadow-lg group-hover:shadow-primary-500/30 transition-all duration-300 group-hover:scale-105">
-              <svg
-                className="w-6 h-6 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <div className="absolute inset-0 bg-white/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xl font-bold tracking-tight text-white transition-colors duration-300">
-                Absensi<span className="text-primary-500">Pintar</span>
-              </span>
-            </div>
+      <div className="container mx-auto px-6 flex justify-between items-center">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-2 group">
+          <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-blue-600 shadow-lg shadow-blue-600/20 group-hover:scale-105 transition-transform duration-300">
+            <Camera className="w-5 h-5 text-white" />
           </div>
+          <span className={cn("text-xl font-bold transition-colors", isScrolled ? "text-slate-900" : "text-white")}>
+            AbsensiFR
+          </span>
+        </Link>
 
-          {/* Desktop Menu */}
-          <div className={`hidden md:flex items-center gap-1 backdrop-blur-sm p-1.5 rounded-full border transition-all duration-500 ${
-            isScrolled ? 'bg-slate-800/50 border-slate-700' : 'bg-white/5 border-white/10'
-          }`}>
-            {['Fitur', 'Cara Kerja', 'Tentang', 'Kontak'].map((item) => (
-              <button
-                key={item}
-                onClick={() => scrollToSection(item.toLowerCase().replace(' ', '-'))}
-                className={`px-5 py-2 text-sm font-medium rounded-full transition-all duration-300 ${
-                  isScrolled
-                    ? 'text-slate-300 hover:text-white hover:bg-slate-700'
-                    : 'text-white/90 hover:text-white hover:bg-white/10'
-                }`}
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex items-center gap-8">
+          <div className="flex items-center gap-6">
+            {navLinks.map((link) => (
+              <Link
+                key={link.name}
+                href={link.href}
+                className={cn(
+                  "text-sm font-semibold transition-colors relative group",
+                  isScrolled ? "text-slate-600 hover:text-blue-600" : "text-white/80 hover:text-white"
+                )}
               >
-                {item}
-              </button>
+                {link.name}
+              </Link>
             ))}
           </div>
 
-          {/* CTA Buttons */}
-          <div className="hidden md:flex items-center gap-4">
-            <Link
-              href="/admin"
-              className={`px-6 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 transform hover:-translate-y-0.5 ${
-                isScrolled
-                  ? 'bg-primary-600 text-white hover:bg-primary-500 shadow-lg shadow-primary-900/20'
-                  : 'bg-white text-primary-600 hover:bg-blue-50 shadow-lg shadow-black/10'
-              }`}
-            >
-              Login Admin
-            </Link>
-          </div>
+          <div className="h-6 w-px bg-slate-200/20 mx-2" />
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 rounded-lg transition-colors text-white hover:bg-white/10"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              {isMobileMenuOpen ? (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              ) : (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              )}
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile Menu Overlay */}
-      <div
-        className={`md:hidden fixed inset-0 z-40 bg-slate-950/80 backdrop-blur-sm transition-opacity duration-300 ${
-          isMobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
-        onClick={() => setIsMobileMenuOpen(false)}
-      />
-
-      {/* Mobile Menu Panel */}
-      <div
-        className={`md:hidden fixed top-0 right-0 z-50 w-64 h-full bg-slate-900 border-l border-slate-800 shadow-2xl transform transition-transform duration-300 ease-out ${
-          isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
-      >
-        <div className="p-6 space-y-6">
-          <div className="flex items-center justify-between">
-            <span className="text-xl font-bold text-white">Menu</span>
+          {/* Language Switcher */}
+          <div className="flex items-center gap-2 bg-slate-100/10 rounded-full p-1 border border-white/10">
             <button
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+              onClick={() => setLanguage('id')}
+              className={cn(
+                "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all",
+                language === 'id' 
+                  ? "bg-white text-blue-600 shadow-sm" 
+                  : isScrolled ? "text-slate-500 hover:text-slate-900" : "text-white/60 hover:text-white"
+              )}
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              ID
+            </button>
+            <button
+              onClick={() => setLanguage('en')}
+              className={cn(
+                "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all",
+                language === 'en' 
+                  ? "bg-white text-blue-600 shadow-sm" 
+                  : isScrolled ? "text-slate-500 hover:text-slate-900" : "text-white/60 hover:text-white"
+              )}
+            >
+              EN
             </button>
           </div>
 
-          <div className="space-y-2">
-            {['Fitur', 'Cara Kerja', 'Tentang', 'Kontak'].map((item) => (
-              <button
-                key={item}
-                onClick={() => scrollToSection(item.toLowerCase().replace(' ', '-'))}
-                className="block w-full text-left px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl font-medium transition-all"
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-
-          <div className="pt-6 border-t border-slate-800 space-y-3">
-            <Link
-              href="/admin"
-              className="flex items-center justify-center w-full px-4 py-3 text-white bg-primary-600 hover:bg-primary-500 rounded-xl font-semibold shadow-lg shadow-primary-900/20 transition-all"
-            >
-              Login Admin
-            </Link>
-            <Link
-              href="/user"
-              className="flex items-center justify-center w-full px-4 py-3 text-slate-300 bg-slate-800 hover:bg-slate-700 rounded-xl font-semibold transition-all"
-            >
-              Login Karyawan
-            </Link>
-          </div>
+          <Link
+            href="/admin"
+            className={cn(
+              "px-6 py-2.5 rounded-full text-sm font-bold transition-all duration-300",
+              isScrolled 
+                ? "bg-slate-900 text-white hover:bg-slate-800" 
+                : "bg-white text-slate-900 hover:bg-slate-100"
+            )}
+          >
+            {t.nav.login}
+          </Link>
         </div>
+
+        {/* Mobile Menu Button */}
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className={cn("md:hidden transition-colors", isScrolled ? "text-slate-900" : "text-white")}
+        >
+          {isOpen ? <X /> : <Menu />}
+        </button>
       </div>
+
+      {/* Mobile Navigation */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="md:hidden bg-white border-b border-slate-200 overflow-hidden shadow-xl"
+          >
+            <div className="container mx-auto px-6 py-4 flex flex-col gap-4">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  onClick={() => setIsOpen(false)}
+                  className="text-slate-600 hover:text-blue-600 font-medium py-2"
+                >
+                  {link.name}
+                </Link>
+              ))}
+              
+              <div className="flex gap-4 py-2 border-t border-slate-100 mt-2">
+                <button 
+                  onClick={() => { setLanguage('id'); setIsOpen(false); }}
+                  className={cn("flex-1 py-2 rounded-lg text-sm font-bold", language === 'id' ? "bg-blue-50 text-blue-600" : "text-slate-500")}
+                >
+                  Indonesia
+                </button>
+                <button 
+                  onClick={() => { setLanguage('en'); setIsOpen(false); }}
+                  className={cn("flex-1 py-2 rounded-lg text-sm font-bold", language === 'en' ? "bg-blue-50 text-blue-600" : "text-slate-500")}
+                >
+                  English
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <Link
+                  href="/admin"
+                  onClick={() => setIsOpen(false)}
+                  className="w-full text-center py-3 rounded-xl text-slate-600 border border-slate-200 hover:bg-slate-50 font-bold"
+                >
+                  {t.nav.login}
+                </Link>
+                <Link
+                  href="/admin"
+                  onClick={() => setIsOpen(false)}
+                  className="w-full text-center py-3 rounded-xl text-white bg-blue-600 hover:bg-blue-700 font-bold shadow-lg shadow-blue-600/20"
+                >
+                  {t.nav.register}
+                </Link>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   );
 }
-

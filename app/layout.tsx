@@ -1,9 +1,13 @@
 import type { Metadata, Viewport } from 'next'
+import { Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css'
+import { LanguageProvider } from '@/lib/LanguageContext';
+
+const font = Plus_Jakarta_Sans({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'React.js + Node.js + ReactBits Project',
-  description: 'Modern web application',
+  title: 'Absensi Karyawan Face Recognition',
+  description: 'Sistem absensi modern berbasis wajah.',
 }
 
 export const viewport: Viewport = {
@@ -21,7 +25,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body>{children}</body>
+      <body className={font.className}>
+        <LanguageProvider>
+          {children}
+        </LanguageProvider>
+      </body>
     </html>
   )
 }
